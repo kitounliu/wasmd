@@ -7,13 +7,17 @@ import (
 
 // Message types types
 const (
-	TypeMsgDeleteVerifiableCredential = "delete-verifiable-credential"
-	TypeMsgIssueVerifiableCredential  = "issue-verifiable-credential"
+	TypeMsgDeleteVerifiableCredential  = "delete-verifiable-credential"
+	TypeMsgIssueVerifiableCredential   = "issue-verifiable-credential"
+	TypeMsgIssueRegistrationCredential = "issue-registration-credential"
+	TypeMsgIssueUserCredential         = "issue-user-credential"
 )
 
 var (
 	_ sdk.Msg = &MsgRevokeCredential{}
 	_ sdk.Msg = &MsgIssueCredential{}
+	_ sdk.Msg = &MsgIssueRegistrationCredential{}
+	_ sdk.Msg = &MsgIssueUserCredential{}
 )
 
 // NewMsgRevokeVerifiableCredential creates a new MsgDeleteVerifiableCredential instance
@@ -95,6 +99,90 @@ func (m *MsgIssueCredential) GetSignBytes() []byte {
 // ValidateBasic validate a credential
 func (m *MsgIssueCredential) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	return nil
+}
+
+// NewMsgIssueRegistrationCredential builds a new instance of a the message
+func NewMsgIssueRegistrationCredential(credential VerifiableCredential, signerAccount string) *MsgIssueRegistrationCredential {
+	return &MsgIssueRegistrationCredential{
+		Credential: &credential,
+		Owner:      signerAccount,
+	}
+}
+
+// Route returns the module router key
+func (m *MsgIssueRegistrationCredential) Route() string {
+	return RouterKey
+}
+
+// Type returns the string name of the message
+func (m *MsgIssueRegistrationCredential) Type() string {
+	return TypeMsgIssueRegistrationCredential
+}
+
+// GetSigners returns the account addresses singing the message
+func (m *MsgIssueRegistrationCredential) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
+}
+
+// GetSignBytes returns the bytes of the signed message
+func (m *MsgIssueRegistrationCredential) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic performs basic validation of the message
+func (m *MsgIssueRegistrationCredential) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(m.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	return nil
+}
+
+// NewMsgIssueUserCredential builds a new instance of a IssuerLicenceCredential message
+func NewMsgIssueUserCredential(credential VerifiableCredential, signerAccount string) *MsgIssueUserCredential {
+	return &MsgIssueUserCredential{
+		Credential: &credential,
+		Owner:      signerAccount,
+	}
+}
+
+// Route returns the module router key
+func (msg *MsgIssueUserCredential) Route() string {
+	return RouterKey
+}
+
+// Type returns the string name of the message
+func (msg *MsgIssueUserCredential) Type() string {
+	return TypeMsgIssueUserCredential
+}
+
+// GetSigners returns the account addresses singing the message
+func (msg *MsgIssueUserCredential) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
+}
+
+// GetSignBytes returns the bytes of the signed message
+func (msg *MsgIssueUserCredential) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic performs basic validation of the message
+func (msg *MsgIssueUserCredential) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

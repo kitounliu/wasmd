@@ -2,25 +2,27 @@ package cli_test
 
 import (
 	"fmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/CosmWasm/wasmd/x/wasm"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/allinbits/cosmos-cash/v3/x/did/client/cli"
-	"github.com/allinbits/cosmos-cash/v3/x/did/types"
+	"github.com/CosmWasm/wasmd/x/did/client/cli"
+	"github.com/CosmWasm/wasmd/x/did/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/allinbits/cosmos-cash/v3/app"
-	"github.com/allinbits/cosmos-cash/v3/app/params"
+	"github.com/CosmWasm/wasmd/app"
+	"github.com/CosmWasm/wasmd/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -28,17 +30,20 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
+var emptyWasmOpts []wasm.Option = nil
+
 // NewAppConstructor returns a new simapp AppConstructor
 func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor {
 	return func(val network.Validator) servertypes.Application {
-		return app.New(
-			"cosmos-cash",
+		return app.NewWasmApp(
 			val.Ctx.Logger,
 			dbm.NewMemDB(), nil, true, make(map[int64]bool),
 			val.Ctx.Config.RootDir,
 			0,
 			encodingCfg,
+			wasm.EnableAllProposals,
 			simapp.EmptyAppOptions{},
+			emptyWasmOpts,
 			baseapp.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
 			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
 		)

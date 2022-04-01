@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/allinbits/cosmos-cash/v3/x/did/types"
+	"github.com/CosmWasm/wasmd/x/did/types"
 )
 
 func (suite *KeeperTestSuite) TestDidDocumentKeeperSetAndGet() {

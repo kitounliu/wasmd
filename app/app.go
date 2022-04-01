@@ -101,6 +101,13 @@ import (
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
+
+	"github.com/CosmWasm/wasmd/x/did"
+	didkeeper "github.com/CosmWasm/wasmd/x/did/keeper"
+	didtypes "github.com/CosmWasm/wasmd/x/did/types"
+	vcs "github.com/CosmWasm/wasmd/x/verifiable-credential"
+	vcskeeper "github.com/CosmWasm/wasmd/x/verifiable-credential/keeper"
+	vcstypes "github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 )
 
 const appName = "WasmApp"
@@ -191,6 +198,9 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		wasm.AppModuleBasic{},
+
+		vcs.AppModuleBasic{},
+		did.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -248,6 +258,9 @@ type WasmApp struct {
 	scopedTransferKeeper capabilitykeeper.ScopedKeeper
 	scopedWasmKeeper     capabilitykeeper.ScopedKeeper
 
+	VcsKeeper         vcskeeper.Keeper
+	DidDocumentKeeper didkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 
@@ -288,6 +301,8 @@ func NewWasmApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey, wasm.StoreKey,
+		vcstypes.StoreKey,
+		didtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -432,6 +447,12 @@ func NewWasmApp(
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
+	app.DidDocumentKeeper = *didkeeper.NewKeeper(
+		appCodec,
+		keys[didtypes.StoreKey],
+		keys[didtypes.MemStoreKey],
+	)
+
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -444,6 +465,15 @@ func NewWasmApp(
 		app.slashingKeeper,
 	)
 	app.evidenceKeeper = *evidenceKeeper
+
+	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+	app.VcsKeeper = *vcskeeper.NewKeeper(
+		appCodec,
+		keys[vcstypes.StoreKey],
+		keys[vcstypes.MemStoreKey],
+		app.DidDocumentKeeper,
+		app.accountKeeper,
+	)
 
 	wasmDir := filepath.Join(homePath, "wasm")
 	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
@@ -523,6 +553,14 @@ func NewWasmApp(
 		params.NewAppModule(app.paramsKeeper),
 		transferModule,
 		crisis.NewAppModule(&app.crisisKeeper, skipGenesisInvariants), // always be last to make sure that it checks for all invariants and not only part of them
+		vcs.NewAppModule(
+			appCodec,
+			app.VcsKeeper,
+		),
+		did.NewAppModule(
+			appCodec,
+			app.DidDocumentKeeper,
+		),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -546,6 +584,8 @@ func NewWasmApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		vcstypes.ModuleName,
+		didtypes.ModuleName,
 		// additional non simd modules
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -569,6 +609,8 @@ func NewWasmApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		vcstypes.ModuleName,
+		didtypes.ModuleName,
 		// additional non simd modules
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -604,6 +646,8 @@ func NewWasmApp(
 		ibctransfertypes.ModuleName,
 		// wasm after ibc transfer
 		wasm.ModuleName,
+		vcstypes.ModuleName,
+		didtypes.ModuleName,
 	)
 
 	// Uncomment if you want to set a custom migration order here.
@@ -817,6 +861,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(wasm.ModuleName)
+	paramsKeeper.Subspace(vcstypes.ModuleName)
+	paramsKeeper.Subspace(didtypes.ModuleName)
 
 	return paramsKeeper
 }

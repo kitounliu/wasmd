@@ -14,9 +14,9 @@ import ( // this line is used by starport scaffolding # 1
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/allinbits/cosmos-cash/v3/x/did/client/cli"
-	"github.com/allinbits/cosmos-cash/v3/x/did/keeper"
-	"github.com/allinbits/cosmos-cash/v3/x/did/types"
+	"github.com/CosmWasm/wasmd/x/did/client/cli"
+	"github.com/CosmWasm/wasmd/x/did/keeper"
+	"github.com/CosmWasm/wasmd/x/did/types"
 )
 
 var (

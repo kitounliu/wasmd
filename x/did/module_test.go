@@ -3,10 +3,12 @@ package did_test
 import (
 	"testing"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
+
 	"github.com/stretchr/testify/require"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/allinbits/cosmos-cash/v3/app"
+	"github.com/CosmWasm/wasmd/app"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -14,18 +16,21 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
+var emptyWasmOpts []wasm.Option = nil
+
 func TestCreateModuleInApp(t *testing.T) {
-	app := app.New(
-		"cosmos-cash",
+	app := app.NewWasmApp(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
 		nil,
 		true,
 		make(map[int64]bool),
-		app.DefaultNodeHome("cosmoscash"),
+		app.DefaultNodeHome,
 		0,
 		app.MakeEncodingConfig(),
+		wasm.EnableAllProposals,
 		simapp.EmptyAppOptions{},
+		emptyWasmOpts,
 	)
 
 	app.InitChain(

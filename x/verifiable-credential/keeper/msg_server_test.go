@@ -4,10 +4,119 @@ import (
 	"fmt"
 	"time"
 
-	didtypes "github.com/allinbits/cosmos-cash/v3/x/did/types"
-	"github.com/allinbits/cosmos-cash/v3/x/verifiable-credential/types"
+	didtypes "github.com/CosmWasm/wasmd/x/did/types"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+func (suite *KeeperTestSuite) TestMsgSeverIssueRegistrationCredential() {
+	server := NewMsgServerImpl(suite.keeper)
+	var req types.MsgIssueRegistrationCredential
+
+	testCases := []struct {
+		msg       string
+		malleate  func()
+		expectErr error
+	}{
+		{
+			msg:       "PASS: issuer can issue registration credential for alice",
+			expectErr: nil,
+			malleate: func() {
+				var vc types.VerifiableCredential
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				aliceDid := didtypes.DID("did:cosmos:net:test:alice")
+				issuerAddress := suite.GetIssuerAddress()
+				vc = types.NewRegistrationVerifiableCredential(
+					"alice-registraion-credential",
+					issuerDid.String(),
+					time.Now(),
+					types.NewRegistrationCredentialSubject(
+						aliceDid.String(),
+						"EU",
+						"emti",
+						"E-Money Token Issuer",
+					),
+				)
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				req = types.MsgIssueRegistrationCredential{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc.malleate()
+			didResp, err := server.IssueRegistrationCredential(sdk.WrapSDKContext(suite.ctx), &req)
+			if tc.expectErr == nil {
+				suite.NoError(err)
+				suite.NotNil(didResp)
+			} else {
+				suite.Require().Error(err)
+				suite.Assert().Contains(err.Error(), tc.expectErr.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgSeverIssueUserCredential() {
+	server := NewMsgServerImpl(suite.keeper)
+	var req types.MsgIssueUserCredential
+
+	testCases := []struct {
+		msg       string
+		malleate  func()
+		expectErr error
+	}{
+		{
+			msg:       "PASS: issuer can issue user credential for alice",
+			expectErr: nil,
+			malleate: func() {
+				var vc types.VerifiableCredential
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				aliceDid := didtypes.DID("did:cosmos:net:test:alice")
+				issuerAddress := suite.GetIssuerAddress()
+				vc = types.NewUserVerifiableCredential(
+					"alice-registraion-credential",
+					issuerDid.String(),
+					time.Now(),
+					types.NewUserCredentialSubject(
+						aliceDid.String(),
+						"b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+						true,
+					),
+				)
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				req = types.MsgIssueUserCredential{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc.malleate()
+			didResp, err := server.IssueUserCredential(sdk.WrapSDKContext(suite.ctx), &req)
+			if tc.expectErr == nil {
+				suite.NoError(err)
+				suite.NotNil(didResp)
+			} else {
+				suite.Require().Error(err)
+				suite.Assert().Contains(err.Error(), tc.expectErr.Error())
+			}
+		})
+	}
+}
 
 func (suite *KeeperTestSuite) TestMsgSeverDeleteVerifableCredential() {
 	server := NewMsgServerImpl(suite.keeper)

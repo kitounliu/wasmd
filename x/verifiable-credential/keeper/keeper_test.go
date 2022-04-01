@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/stretchr/testify/suite"
 
-	didkeeper "github.com/allinbits/cosmos-cash/v3/x/did/keeper"
-	didtypes "github.com/allinbits/cosmos-cash/v3/x/did/types"
-	"github.com/allinbits/cosmos-cash/v3/x/verifiable-credential/types"
+	didkeeper "github.com/CosmWasm/wasmd/x/did/keeper"
+	didtypes "github.com/CosmWasm/wasmd/x/did/types"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	ct "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,6 +26,7 @@ import (
 	"github.com/rs/zerolog/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -35,6 +39,8 @@ type KeeperTestSuite struct {
 	keeper      Keeper
 	didkeeper   didkeeper.Keeper
 	queryClient types.QueryClient
+
+	keyring keyring.Keyring
 }
 
 // SetupTest creates a test suite to test the did
@@ -49,15 +55,20 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
+	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyParams, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(memKeyParams, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyVc, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(memKeyVc, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyDidDocument, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(memKeyDidDocument, sdk.StoreTypeIAVL, db)
 	_ = ms.LoadLatestVersion()
 
-	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "foochainid"}, true, server.ZeroLogWrapper{log.Logger})
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "test"}, true, server.ZeroLogWrapper{log.Logger})
 
 	interfaceRegistry := ct.NewInterfaceRegistry()
+	authtypes.RegisterInterfaces(interfaceRegistry)
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	marshaler := codec.NewProtoCodec(interfaceRegistry)
 
 	maccPerms := map[string][]string{
@@ -93,10 +104,79 @@ func (suite *KeeperTestSuite) SetupTest() {
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.ctx, suite.keeper, suite.didkeeper, suite.queryClient = ctx, *k, *didKeeper, queryClient
+
+	suite.keyring = keyring.NewInMemory()
+	// helper func to register accounts in the keychain and the account keeper
+	registerAccount := func(uid string, withPubKey bool) {
+		i, _, _ := suite.keyring.NewMnemonic(uid, keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
+		a := accountKeeper.NewAccountWithAddress(ctx, i.GetAddress())
+		if withPubKey {
+			a.SetPubKey(i.GetPubKey())
+		}
+		accountKeeper.SetAccount(ctx, accountKeeper.NewAccount(ctx, a))
+	}
+
+	registerAccount("issuer", true)
+	registerAccount("alice", true)
+	registerAccount("bob", false)
+
+	// create did for issuer and alice
+	issuerDid := didtypes.NewChainDID("test", "issuer")
+	issuerVmId := issuerDid.NewVerificationMethodID(suite.GetIssuerAddress().String())
+	issuerInfo, err := suite.keyring.Key("issuer")
+	suite.NoError(err)
+	issuerPk := issuerInfo.GetPubKey()
+	issuerDidDoc, _ := didtypes.NewDidDocument(issuerDid.String(), didtypes.WithVerifications(
+		didtypes.NewVerification(
+			didtypes.NewVerificationMethod(
+				issuerVmId,
+				issuerDid,
+				didtypes.NewPublicKeyMultibase(issuerPk.Bytes(), didtypes.DIDVMethodTypeEcdsaSecp256k1VerificationKey2019),
+			),
+			[]string{didtypes.Authentication},
+			nil,
+		),
+	))
+	suite.didkeeper.SetDidDocument(suite.ctx, []byte(issuerDidDoc.Id), issuerDidDoc)
+
+	aliceDid := didtypes.NewChainDID("test", "alice")
+	aliceVmId := aliceDid.NewVerificationMethodID(suite.GetAliceAddress().String())
+	aliceInfo, err := suite.keyring.Key("alice")
+	suite.NoError(err)
+	alicePk := aliceInfo.GetPubKey()
+	aliceDidDoc, _ := didtypes.NewDidDocument(aliceDid.String(), didtypes.WithVerifications(
+		didtypes.NewVerification(
+			didtypes.NewVerificationMethod(
+				aliceVmId,
+				aliceDid,
+				didtypes.NewPublicKeyMultibase(alicePk.Bytes(), didtypes.DIDVMethodTypeEcdsaSecp256k1VerificationKey2019),
+			),
+			[]string{didtypes.Authentication},
+			nil,
+		),
+	))
+	suite.didkeeper.SetDidDocument(suite.ctx, []byte(aliceDidDoc.Id), aliceDidDoc)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
+}
+
+func (suite KeeperTestSuite) GetAliceAddress() sdk.Address {
+	return suite.GetKeyAddress("alice")
+}
+
+func (suite KeeperTestSuite) GetBobAddress() sdk.Address {
+	return suite.GetKeyAddress("bob")
+}
+
+func (suite KeeperTestSuite) GetIssuerAddress() sdk.Address {
+	return suite.GetKeyAddress("issuer")
+}
+
+func (suite KeeperTestSuite) GetKeyAddress(uid string) sdk.Address {
+	i, _ := suite.keyring.Key(uid)
+	return i.GetAddress()
 }
 
 func (suite *KeeperTestSuite) TestGenericKeeperSetAndGet() {

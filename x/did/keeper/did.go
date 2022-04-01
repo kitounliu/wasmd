@@ -3,11 +3,13 @@ package keeper
 import (
 	"strings"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/allinbits/cosmos-cash/v3/x/did/types"
+	"github.com/CosmWasm/wasmd/x/did/types"
 )
 
 func (k Keeper) SetDidDocument(ctx sdk.Context, key []byte, document types.DidDocument) {
@@ -134,5 +136,36 @@ func (k Keeper) GetDidDocumentsByPubKey(ctx sdk.Context, pubkey cryptotypes.PubK
 		return
 	}
 	dids = append(dids, doc)
+	return
+}
+
+func (k Keeper) VerifyDidWithRelationships(ctx sdk.Context, constraints []string, did, signer string) (err error) {
+	k.Logger(ctx).Info("verify a did document", "target did", did)
+	// get the did document
+	didDoc, found := k.GetDidDocument(ctx, []byte(did))
+	if !found {
+		err = sdkerrors.Wrapf(types.ErrDidDocumentNotFound, "did document at %s not found", did)
+		k.Logger(ctx).Error(err.Error())
+		return
+	}
+
+	// Any verification method in the authentication relationship can update the DID document
+	if !didDoc.HasRelationship(types.NewBlockchainAccountID(ctx.ChainID(), signer), constraints...) {
+		// check also the controllers
+		signerDID := types.NewKeyDID(signer)
+		if !didDoc.HasController(signerDID) {
+			// if also the controller was not set the error
+			err = sdkerrors.Wrapf(
+				types.ErrUnauthorized,
+				"signer account %s not authorized to update the target did document at %s",
+				signer, did,
+			)
+			k.Logger(ctx).Error(err.Error())
+			return
+		}
+	}
+
+	k.Logger(ctx).Info("Verified relationship from did document for", "did", did, "controller", signer)
+
 	return
 }

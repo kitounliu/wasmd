@@ -8,17 +8,14 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	didtypes "github.com/allinbits/cosmos-cash/v3/x/did/types"
+	didtypes "github.com/CosmWasm/wasmd/x/did/types"
 )
 
 // Defines the accepted credential types
 const (
 	IdentityCredential     = "IdentityCredential"
 	UserCredential         = "UserCredential"
-	IssuerCredential       = "IssuerCredential"
-	RegulatorCredential    = "RegulatorCredential"
 	RegistrationCredential = "RegistrationCredential"
-	LicenseCredential      = "LicenseCredential"
 )
 
 // IsValidCredentialType tells if a credential type is valid (accepted)
@@ -26,9 +23,7 @@ func IsValidCredentialType(credential string) bool {
 	switch credential {
 	case IdentityCredential,
 		UserCredential,
-		IssuerCredential,
-		RegulatorCredential,
-		LicenseCredential:
+		RegistrationCredential:
 		return true
 	default:
 		return false
@@ -71,42 +66,6 @@ func NewRegistrationVerifiableCredential(
 	}
 }
 
-// NewLicenseVerifiableCredential constructs a new VerifiableCredential instance
-func NewLicenseVerifiableCredential(
-	id string,
-	issuer string,
-	issuanceDate time.Time,
-	credentialSubject VerifiableCredential_LicenseCred,
-) VerifiableCredential {
-	return VerifiableCredential{
-		Context:           []string{"https://www.w3.org/TR/vc-data-model/"},
-		Id:                id,
-		Type:              []string{"VerifiableCredential", LicenseCredential},
-		Issuer:            issuer,
-		IssuanceDate:      &issuanceDate,
-		CredentialSubject: &credentialSubject,
-		Proof:             nil,
-	}
-}
-
-// NewRegulatorVerifiableCredential constructs a new VerifiableCredential instance
-func NewRegulatorVerifiableCredential(
-	id string,
-	issuer string,
-	issuanceDate time.Time,
-	credentialSubject VerifiableCredential_RegulatorCred,
-) VerifiableCredential {
-	return VerifiableCredential{
-		Context:           []string{"https://www.w3.org/TR/vc-data-model/"},
-		Id:                id,
-		Type:              []string{"VerifiableCredential", RegulatorCredential},
-		Issuer:            issuer,
-		IssuanceDate:      &issuanceDate,
-		CredentialSubject: &credentialSubject,
-		Proof:             nil,
-	}
-}
-
 // NewUserCredentialSubject create a new credential subject
 func NewUserCredentialSubject(
 	id string,
@@ -122,26 +81,7 @@ func NewUserCredentialSubject(
 	}
 }
 
-// NewLicenseCredentialSubject create a new license credential subject
-func NewLicenseCredentialSubject(
-	id string,
-	licenseType string,
-	country string,
-	authority string,
-	circulationLimit sdk.Coin,
-) VerifiableCredential_LicenseCred {
-	return VerifiableCredential_LicenseCred{
-		&LicenseCredentialSubject{
-			Id:               id,
-			LicenseType:      licenseType,
-			Country:          country,
-			Authority:        authority,
-			CirculationLimit: circulationLimit,
-		},
-	}
-}
-
-// NewRegistrationCredentialSubject create a new license credential subject
+// NewRegistrationCredentialSubject create a new registration credential subject
 // TODO: placeholder implementation, refactor it
 func NewRegistrationCredentialSubject(
 	id string,
@@ -175,21 +115,6 @@ func NewRegistrationCredentialSubject(
 					Type: "LEIX",
 				},
 			},
-		},
-	}
-}
-
-// NewRegulatorCredentialSubject create a new regulator credential subject
-func NewRegulatorCredentialSubject(
-	subjectID string,
-	name string,
-	country string,
-) VerifiableCredential_RegulatorCred {
-	return VerifiableCredential_RegulatorCred{
-		&RegulatorCredentialSubject{
-			Id:      subjectID,
-			Name:    name,
-			Country: country,
 		},
 	}
 }
@@ -282,12 +207,8 @@ func (vc VerifiableCredential) GetSubjectDID() didtypes.DID {
 	switch subj := vc.CredentialSubject.(type) {
 	case *VerifiableCredential_RegistrationCred:
 		return didtypes.DID(subj.RegistrationCred.Id)
-	case *VerifiableCredential_LicenseCred:
-		return didtypes.DID(subj.LicenseCred.Id)
 	case *VerifiableCredential_UserCred:
 		return didtypes.DID(subj.UserCred.Id)
-	case *VerifiableCredential_RegulatorCred:
-		return didtypes.DID(subj.RegulatorCred.Id)
 	default:
 		// TODO, not great
 		return didtypes.DID("")

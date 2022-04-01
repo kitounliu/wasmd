@@ -2,10 +2,10 @@ syntax = "proto3";
 package allinbits.cosmoscash.did;
 
 import "gogoproto/gogo.proto";
-import "did/did.proto";
+import "cosmos-cash/did/did.proto";
 import "google/api/annotations.proto";
 
-option go_package = "github.com/allinbits/cosmos-cash/v3/x/did/types";
+option go_package = "github.com/CosmWasm/wasmd/x/did/types";
 
 // Msg defines the identity Msg service.
 service Msg {
