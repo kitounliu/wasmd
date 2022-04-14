@@ -105,82 +105,6 @@ func (m *MsgIssueRegistrationCredentialResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgIssueRegistrationCredentialResponse proto.InternalMessageInfo
 
-// MsgIssueLicenseCredential message contains data for license credential
-type MsgIssueLicenseCredential struct {
-	Credential *VerifiableCredential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
-	Owner      string                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-}
-
-func (m *MsgIssueLicenseCredential) Reset()         { *m = MsgIssueLicenseCredential{} }
-func (m *MsgIssueLicenseCredential) String() string { return proto.CompactTextString(m) }
-func (*MsgIssueLicenseCredential) ProtoMessage()    {}
-func (*MsgIssueLicenseCredential) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{2}
-}
-func (m *MsgIssueLicenseCredential) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgIssueLicenseCredential) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgIssueLicenseCredential.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgIssueLicenseCredential) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgIssueLicenseCredential.Merge(m, src)
-}
-func (m *MsgIssueLicenseCredential) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgIssueLicenseCredential) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgIssueLicenseCredential.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgIssueLicenseCredential proto.InternalMessageInfo
-
-// MsgIssueLicenseCredentialResponse reply for the issue license call
-type MsgIssueLicenseCredentialResponse struct {
-}
-
-func (m *MsgIssueLicenseCredentialResponse) Reset()         { *m = MsgIssueLicenseCredentialResponse{} }
-func (m *MsgIssueLicenseCredentialResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgIssueLicenseCredentialResponse) ProtoMessage()    {}
-func (*MsgIssueLicenseCredentialResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{3}
-}
-func (m *MsgIssueLicenseCredentialResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgIssueLicenseCredentialResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgIssueLicenseCredentialResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgIssueLicenseCredentialResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgIssueLicenseCredentialResponse.Merge(m, src)
-}
-func (m *MsgIssueLicenseCredentialResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgIssueLicenseCredentialResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgIssueLicenseCredentialResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgIssueLicenseCredentialResponse proto.InternalMessageInfo
-
 // MsgIssueUserCredential defines sdk message to issue user credentials
 type MsgIssueUserCredential struct {
 	Credential *VerifiableCredential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
@@ -191,7 +115,7 @@ func (m *MsgIssueUserCredential) Reset()         { *m = MsgIssueUserCredential{}
 func (m *MsgIssueUserCredential) String() string { return proto.CompactTextString(m) }
 func (*MsgIssueUserCredential) ProtoMessage()    {}
 func (*MsgIssueUserCredential) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{4}
+	return fileDescriptor_3b5badbc2f927a27, []int{2}
 }
 func (m *MsgIssueUserCredential) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -227,7 +151,7 @@ func (m *MsgIssueUserCredentialResponse) Reset()         { *m = MsgIssueUserCred
 func (m *MsgIssueUserCredentialResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgIssueUserCredentialResponse) ProtoMessage()    {}
 func (*MsgIssueUserCredentialResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{5}
+	return fileDescriptor_3b5badbc2f927a27, []int{3}
 }
 func (m *MsgIssueUserCredentialResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -256,6 +180,166 @@ func (m *MsgIssueUserCredentialResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgIssueUserCredentialResponse proto.InternalMessageInfo
 
+// MsgIssueParameterCredential message contains data for public parameters credential
+type MsgIssueAnonymousCredentialSchema struct {
+	Credential *VerifiableCredential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
+	Owner      string                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+}
+
+func (m *MsgIssueAnonymousCredentialSchema) Reset()         { *m = MsgIssueAnonymousCredentialSchema{} }
+func (m *MsgIssueAnonymousCredentialSchema) String() string { return proto.CompactTextString(m) }
+func (*MsgIssueAnonymousCredentialSchema) ProtoMessage()    {}
+func (*MsgIssueAnonymousCredentialSchema) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3b5badbc2f927a27, []int{4}
+}
+func (m *MsgIssueAnonymousCredentialSchema) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgIssueAnonymousCredentialSchema) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgIssueAnonymousCredentialSchema.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgIssueAnonymousCredentialSchema) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgIssueAnonymousCredentialSchema.Merge(m, src)
+}
+func (m *MsgIssueAnonymousCredentialSchema) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgIssueAnonymousCredentialSchema) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgIssueAnonymousCredentialSchema.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgIssueAnonymousCredentialSchema proto.InternalMessageInfo
+
+// MsgIssueLicenseCredentialResponse reply for the issue license call
+type MsgIssueAnonymousCredentialSchemaResponse struct {
+}
+
+func (m *MsgIssueAnonymousCredentialSchemaResponse) Reset() {
+	*m = MsgIssueAnonymousCredentialSchemaResponse{}
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MsgIssueAnonymousCredentialSchemaResponse) ProtoMessage() {}
+func (*MsgIssueAnonymousCredentialSchemaResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3b5badbc2f927a27, []int{5}
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgIssueAnonymousCredentialSchemaResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgIssueAnonymousCredentialSchemaResponse.Merge(m, src)
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgIssueAnonymousCredentialSchemaResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgIssueAnonymousCredentialSchemaResponse proto.InternalMessageInfo
+
+// MsgUpdateSchemaAccumulatorState message contains data for adding/deleting members from the state
+type MsgUpdateAnonymousCredentialSchema struct {
+	Credential *VerifiableCredential `protobuf:"bytes,1,opt,name=credential,proto3" json:"credential,omitempty"`
+	Owner      string                `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+}
+
+func (m *MsgUpdateAnonymousCredentialSchema) Reset()         { *m = MsgUpdateAnonymousCredentialSchema{} }
+func (m *MsgUpdateAnonymousCredentialSchema) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateAnonymousCredentialSchema) ProtoMessage()    {}
+func (*MsgUpdateAnonymousCredentialSchema) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3b5badbc2f927a27, []int{6}
+}
+func (m *MsgUpdateAnonymousCredentialSchema) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateAnonymousCredentialSchema) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateAnonymousCredentialSchema.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateAnonymousCredentialSchema) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateAnonymousCredentialSchema.Merge(m, src)
+}
+func (m *MsgUpdateAnonymousCredentialSchema) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateAnonymousCredentialSchema) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateAnonymousCredentialSchema.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateAnonymousCredentialSchema proto.InternalMessageInfo
+
+// MsgUpdateSchemaAccumulatorStateResponse reply for the issue license call
+type MsgUpdateAnonymousCredentialSchemaResponse struct {
+}
+
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) Reset() {
+	*m = MsgUpdateAnonymousCredentialSchemaResponse{}
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MsgUpdateAnonymousCredentialSchemaResponse) ProtoMessage() {}
+func (*MsgUpdateAnonymousCredentialSchemaResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3b5badbc2f927a27, []int{7}
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateAnonymousCredentialSchemaResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateAnonymousCredentialSchemaResponse.Merge(m, src)
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateAnonymousCredentialSchemaResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateAnonymousCredentialSchemaResponse proto.InternalMessageInfo
+
 // MsgRevokeCredential
 type MsgRevokeCredential struct {
 	CredentialId string `protobuf:"bytes,1,opt,name=credential_id,json=credentialId,proto3" json:"credential_id,omitempty"`
@@ -266,7 +350,7 @@ func (m *MsgRevokeCredential) Reset()         { *m = MsgRevokeCredential{} }
 func (m *MsgRevokeCredential) String() string { return proto.CompactTextString(m) }
 func (*MsgRevokeCredential) ProtoMessage()    {}
 func (*MsgRevokeCredential) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{6}
+	return fileDescriptor_3b5badbc2f927a27, []int{8}
 }
 func (m *MsgRevokeCredential) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -303,7 +387,7 @@ func (m *MsgRevokeCredentialResponse) Reset()         { *m = MsgRevokeCredential
 func (m *MsgRevokeCredentialResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgRevokeCredentialResponse) ProtoMessage()    {}
 func (*MsgRevokeCredentialResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{7}
+	return fileDescriptor_3b5badbc2f927a27, []int{9}
 }
 func (m *MsgRevokeCredentialResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -343,7 +427,7 @@ func (m *MsgIssueCredential) Reset()         { *m = MsgIssueCredential{} }
 func (m *MsgIssueCredential) String() string { return proto.CompactTextString(m) }
 func (*MsgIssueCredential) ProtoMessage()    {}
 func (*MsgIssueCredential) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{8}
+	return fileDescriptor_3b5badbc2f927a27, []int{10}
 }
 func (m *MsgIssueCredential) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -380,7 +464,7 @@ func (m *MsgIssueCredentialResponse) Reset()         { *m = MsgIssueCredentialRe
 func (m *MsgIssueCredentialResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgIssueCredentialResponse) ProtoMessage()    {}
 func (*MsgIssueCredentialResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5badbc2f927a27, []int{9}
+	return fileDescriptor_3b5badbc2f927a27, []int{11}
 }
 func (m *MsgIssueCredentialResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -410,16 +494,18 @@ func (m *MsgIssueCredentialResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgIssueCredentialResponse proto.InternalMessageInfo
 
 func init() {
-	proto.RegisterType((*MsgIssueRegistrationCredential)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueRegistrationCredential")
-	proto.RegisterType((*MsgIssueRegistrationCredentialResponse)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueRegistrationCredentialResponse")
-	proto.RegisterType((*MsgIssueLicenseCredential)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueLicenseCredential")
-	proto.RegisterType((*MsgIssueLicenseCredentialResponse)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueLicenseCredentialResponse")
-	proto.RegisterType((*MsgIssueUserCredential)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueUserCredential")
-	proto.RegisterType((*MsgIssueUserCredentialResponse)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueUserCredentialResponse")
-	proto.RegisterType((*MsgRevokeCredential)(nil), "allinbits.cosmoscash.verifiablecredential.MsgRevokeCredential")
-	proto.RegisterType((*MsgRevokeCredentialResponse)(nil), "allinbits.cosmoscash.verifiablecredential.MsgRevokeCredentialResponse")
-	proto.RegisterType((*MsgIssueCredential)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueCredential")
-	proto.RegisterType((*MsgIssueCredentialResponse)(nil), "allinbits.cosmoscash.verifiablecredential.MsgIssueCredentialResponse")
+	proto.RegisterType((*MsgIssueRegistrationCredential)(nil), "wasmd.verifiablecredential.MsgIssueRegistrationCredential")
+	proto.RegisterType((*MsgIssueRegistrationCredentialResponse)(nil), "wasmd.verifiablecredential.MsgIssueRegistrationCredentialResponse")
+	proto.RegisterType((*MsgIssueUserCredential)(nil), "wasmd.verifiablecredential.MsgIssueUserCredential")
+	proto.RegisterType((*MsgIssueUserCredentialResponse)(nil), "wasmd.verifiablecredential.MsgIssueUserCredentialResponse")
+	proto.RegisterType((*MsgIssueAnonymousCredentialSchema)(nil), "wasmd.verifiablecredential.MsgIssueAnonymousCredentialSchema")
+	proto.RegisterType((*MsgIssueAnonymousCredentialSchemaResponse)(nil), "wasmd.verifiablecredential.MsgIssueAnonymousCredentialSchemaResponse")
+	proto.RegisterType((*MsgUpdateAnonymousCredentialSchema)(nil), "wasmd.verifiablecredential.MsgUpdateAnonymousCredentialSchema")
+	proto.RegisterType((*MsgUpdateAnonymousCredentialSchemaResponse)(nil), "wasmd.verifiablecredential.MsgUpdateAnonymousCredentialSchemaResponse")
+	proto.RegisterType((*MsgRevokeCredential)(nil), "wasmd.verifiablecredential.MsgRevokeCredential")
+	proto.RegisterType((*MsgRevokeCredentialResponse)(nil), "wasmd.verifiablecredential.MsgRevokeCredentialResponse")
+	proto.RegisterType((*MsgIssueCredential)(nil), "wasmd.verifiablecredential.MsgIssueCredential")
+	proto.RegisterType((*MsgIssueCredentialResponse)(nil), "wasmd.verifiablecredential.MsgIssueCredentialResponse")
 }
 
 func init() {
@@ -427,36 +513,39 @@ func init() {
 }
 
 var fileDescriptor_3b5badbc2f927a27 = []byte{
-	// 449 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4a, 0xce, 0x2f, 0xce,
-	0xcd, 0x2f, 0xd6, 0x4d, 0x4e, 0x2c, 0xce, 0xd0, 0x2f, 0x4b, 0x2d, 0xca, 0x4c, 0xcb, 0x4c, 0x4c,
-	0xca, 0x49, 0xd5, 0x4d, 0x2e, 0x4a, 0x4d, 0x49, 0xcd, 0x2b, 0xc9, 0x4c, 0xcc, 0xd1, 0x2f, 0xa9,
-	0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xd2, 0x4c, 0xcc, 0xc9, 0xc9, 0xcc, 0x4b, 0xca, 0x2c,
-	0x29, 0xd6, 0x83, 0xe8, 0x02, 0x69, 0xd2, 0x43, 0x68, 0x42, 0xe8, 0x91, 0x12, 0x49, 0xcf, 0x4f,
-	0xcf, 0x07, 0xeb, 0xd2, 0x07, 0xb1, 0x20, 0x06, 0x48, 0xd9, 0x12, 0xb6, 0x0c, 0xab, 0x28, 0x44,
-	0xbb, 0xd2, 0x42, 0x46, 0x2e, 0x39, 0xdf, 0xe2, 0x74, 0xcf, 0xe2, 0xe2, 0xd2, 0xd4, 0xa0, 0xd4,
-	0xf4, 0xcc, 0xe2, 0x92, 0xa2, 0xc4, 0x92, 0xcc, 0xfc, 0x3c, 0x67, 0xb8, 0x42, 0xa1, 0x78, 0x2e,
-	0x2e, 0x84, 0x36, 0x09, 0x46, 0x05, 0x46, 0x0d, 0x6e, 0x23, 0x7b, 0x3d, 0xa2, 0xdd, 0xad, 0x17,
-	0x06, 0x17, 0x44, 0x18, 0x1a, 0x84, 0x64, 0xa4, 0x90, 0x08, 0x17, 0x6b, 0x7e, 0x79, 0x5e, 0x6a,
-	0x91, 0x04, 0x93, 0x02, 0xa3, 0x06, 0x67, 0x10, 0x84, 0x63, 0xc5, 0xd1, 0xb1, 0x40, 0x9e, 0xe1,
-	0xc5, 0x02, 0x79, 0x06, 0x25, 0x0d, 0x2e, 0x35, 0xfc, 0x4e, 0x0c, 0x4a, 0x2d, 0x2e, 0xc8, 0xcf,
-	0x2b, 0x4e, 0x55, 0x9a, 0xc3, 0xc8, 0x25, 0x09, 0x53, 0xea, 0x93, 0x99, 0x9c, 0x9a, 0x57, 0x9c,
-	0x3a, 0x98, 0x3c, 0xa2, 0xcc, 0xa5, 0x88, 0xd3, 0x75, 0x70, 0x3f, 0xcc, 0x64, 0xe4, 0x12, 0x83,
-	0xa9, 0x0a, 0x2d, 0x4e, 0x2d, 0x1a, 0x4c, 0x1e, 0x50, 0x40, 0x24, 0x16, 0x54, 0xa7, 0xc1, 0x5d,
-	0x1f, 0xc5, 0x25, 0xec, 0x5b, 0x9c, 0x1e, 0x94, 0x5a, 0x96, 0x9f, 0x8d, 0x1c, 0xf4, 0xca, 0x5c,
-	0xbc, 0x08, 0x6b, 0xe2, 0x33, 0x53, 0xc0, 0x8e, 0xe7, 0x0c, 0xe2, 0x41, 0x08, 0x7a, 0xa6, 0x10,
-	0xb4, 0x5d, 0x96, 0x4b, 0x1a, 0x8b, 0xd9, 0x70, 0xab, 0xa7, 0x32, 0x72, 0x09, 0xc1, 0x5c, 0x37,
-	0x98, 0x02, 0x4d, 0x86, 0x4b, 0x0a, 0xd3, 0x59, 0x30, 0x57, 0x1b, 0xb5, 0xb1, 0x70, 0x31, 0xfb,
-	0x16, 0xa7, 0x0b, 0xed, 0x66, 0xe4, 0x92, 0xc6, 0x97, 0x0b, 0x3d, 0x49, 0x70, 0x32, 0xfe, 0xdc,
-	0x22, 0x15, 0x48, 0x35, 0xa3, 0x60, 0xbe, 0x10, 0x5a, 0xcc, 0xc8, 0x25, 0x8c, 0x2d, 0xc5, 0x3a,
-	0x92, 0x61, 0x15, 0xaa, 0x11, 0x52, 0x9e, 0x14, 0x1b, 0x01, 0x77, 0xe5, 0x2c, 0x46, 0x2e, 0x01,
-	0x8c, 0xa4, 0x69, 0x47, 0x9a, 0xf9, 0xe8, 0xfa, 0xa5, 0xdc, 0x28, 0xd3, 0x0f, 0x73, 0x9c, 0x53,
-	0xe0, 0x89, 0x47, 0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1,
-	0x1c, 0xc3, 0x85, 0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x44, 0x99, 0xa7, 0x67, 0x96, 0x64,
-	0x94, 0x26, 0xe9, 0x25, 0xe7, 0xe7, 0xea, 0x3b, 0xe7, 0x17, 0xe7, 0x86, 0x27, 0x16, 0xe7, 0xea,
-	0x97, 0x27, 0x16, 0xe7, 0xa6, 0xe8, 0x57, 0xe0, 0xaa, 0x5f, 0x2a, 0x0b, 0x52, 0x8b, 0x93, 0xd8,
-	0xc0, 0x65, 0xbc, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xde, 0xe3, 0xff, 0x67, 0x91, 0x06, 0x00,
-	0x00,
+	// 505 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x95, 0x4d, 0x6b, 0x13, 0x41,
+	0x18, 0xc7, 0x77, 0x14, 0x8b, 0x7d, 0x54, 0x90, 0x6d, 0x91, 0x32, 0xd5, 0x4d, 0x8c, 0x20, 0xb1,
+	0xda, 0x5d, 0x89, 0x87, 0x42, 0xa0, 0x82, 0x2d, 0x0a, 0x3d, 0x04, 0x74, 0xa5, 0x0a, 0xbd, 0xc8,
+	0x64, 0x77, 0x9c, 0x2c, 0x76, 0x77, 0xc2, 0x3e, 0x9b, 0xbe, 0x80, 0x07, 0x2f, 0x8a, 0x78, 0x12,
+	0x41, 0x6f, 0x42, 0x4f, 0x82, 0xdf, 0xc4, 0x63, 0x8f, 0x1e, 0x25, 0xb9, 0xf8, 0x31, 0xc4, 0x84,
+	0x9d, 0x69, 0x6d, 0xb2, 0xd3, 0x9a, 0x43, 0x7a, 0x4b, 0x86, 0xff, 0xcb, 0x6f, 0x86, 0x7d, 0x66,
+	0x60, 0x21, 0x90, 0x18, 0x4b, 0x5c, 0x0c, 0x18, 0xb6, 0xbc, 0x2d, 0x9e, 0x46, 0x2f, 0x23, 0xd6,
+	0xdc, 0xe4, 0x8b, 0x41, 0xca, 0x43, 0x9e, 0x64, 0x11, 0xdb, 0xf4, 0xb2, 0x1d, 0xb7, 0x9d, 0xca,
+	0x4c, 0xda, 0x74, 0x9b, 0x61, 0x1c, 0xba, 0x5a, 0xa5, 0x45, 0x74, 0x56, 0x48, 0x21, 0xfb, 0x32,
+	0xef, 0xef, 0xaf, 0x81, 0x83, 0x2e, 0x9b, 0xd3, 0x87, 0xae, 0x0e, 0xec, 0x95, 0x4f, 0x04, 0x9c,
+	0x06, 0x8a, 0x35, 0xc4, 0x0e, 0xf7, 0xb9, 0x88, 0x30, 0x4b, 0x59, 0x16, 0xc9, 0x64, 0x55, 0x09,
+	0xed, 0xc7, 0x00, 0xda, 0x36, 0x47, 0xca, 0xa4, 0x7a, 0xa1, 0x76, 0xd7, 0x1d, 0x0d, 0xea, 0x3e,
+	0x53, 0x8b, 0x3a, 0xc5, 0x3f, 0x90, 0x61, 0xcf, 0xc2, 0x39, 0xb9, 0x9d, 0xf0, 0x74, 0xee, 0x4c,
+	0x99, 0x54, 0xa7, 0xfd, 0xc1, 0x9f, 0xfa, 0xf9, 0xf7, 0x7b, 0x25, 0xeb, 0xf7, 0x5e, 0xc9, 0xaa,
+	0x54, 0xe1, 0x66, 0x31, 0x93, 0xcf, 0xb1, 0x2d, 0x13, 0xe4, 0x95, 0x0f, 0x04, 0xae, 0xe4, 0xd2,
+	0x75, 0xe4, 0xe9, 0x44, 0xb1, 0xcb, 0xfa, 0x28, 0x0f, 0xb3, 0x28, 0xdc, 0xcf, 0x04, 0xae, 0xe7,
+	0x92, 0x07, 0x89, 0x4c, 0x76, 0x63, 0xd9, 0x41, 0xad, 0x7b, 0x1a, 0xb4, 0x78, 0xcc, 0x26, 0x40,
+	0x7e, 0x1b, 0x6e, 0x19, 0xb1, 0xd4, 0x26, 0xbe, 0x10, 0xa8, 0x34, 0x50, 0xac, 0xb7, 0x43, 0x96,
+	0x9d, 0xaa, 0x5d, 0xdc, 0x81, 0x05, 0x33, 0x97, 0xda, 0xc6, 0x06, 0xcc, 0x34, 0x50, 0xf8, 0x7c,
+	0x4b, 0xbe, 0x3a, 0x50, 0x68, 0xdf, 0x80, 0x4b, 0xba, 0xf2, 0x45, 0x14, 0xf6, 0xc9, 0xa7, 0xfd,
+	0x8b, 0x7a, 0x71, 0x2d, 0x34, 0x92, 0x5c, 0x83, 0xf9, 0x21, 0xd9, 0xaa, 0xfa, 0x1d, 0x01, 0x3b,
+	0x3f, 0xef, 0x89, 0x7e, 0xb1, 0x57, 0x81, 0x1e, 0xe5, 0xc8, 0x31, 0x6b, 0x6f, 0xa6, 0xe0, 0x6c,
+	0x03, 0x85, 0xfd, 0x95, 0xc0, 0x7c, 0xd1, 0x05, 0x51, 0x2f, 0x62, 0x2c, 0x1e, 0x64, 0xba, 0xf2,
+	0xff, 0xde, 0x9c, 0xd3, 0x7e, 0x4b, 0x60, 0x66, 0xd8, 0x0d, 0x50, 0x3b, 0x4e, 0xf6, 0x61, 0x0f,
+	0xad, 0x9f, 0xdc, 0xa3, 0x38, 0xbe, 0x11, 0x70, 0x0c, 0xa3, 0xbd, 0x7c, 0x9c, 0xf8, 0x91, 0x76,
+	0xfa, 0x70, 0x2c, 0xbb, 0x02, 0xfd, 0x4e, 0xa0, 0x64, 0x1a, 0xdf, 0xfb, 0x86, 0x2a, 0x83, 0x9f,
+	0x3e, 0x1a, 0xcf, 0xaf, 0x58, 0x5f, 0xc3, 0xe5, 0x23, 0x33, 0xea, 0x19, 0xb2, 0xff, 0x35, 0xd0,
+	0xa5, 0x13, 0x1a, 0xf2, 0xf6, 0x95, 0x27, 0x3f, 0xba, 0x0e, 0xd9, 0xef, 0x3a, 0xe4, 0x57, 0xd7,
+	0x21, 0x1f, 0x7b, 0x8e, 0xb5, 0xdf, 0x73, 0xac, 0x9f, 0x3d, 0xc7, 0xda, 0x58, 0x12, 0x51, 0xd6,
+	0xea, 0x34, 0xdd, 0x40, 0xc6, 0xde, 0xaa, 0xc4, 0xf8, 0x39, 0xc3, 0xd8, 0xeb, 0xb7, 0x78, 0x3b,
+	0xa3, 0x5e, 0xf9, 0xdd, 0x36, 0xc7, 0xe6, 0x54, 0xff, 0xe1, 0xbd, 0xf7, 0x27, 0x00, 0x00, 0xff,
+	0xff, 0xdb, 0x09, 0x59, 0xbf, 0x17, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -475,6 +564,10 @@ type MsgClient interface {
 	IssueRegistrationCredential(ctx context.Context, in *MsgIssueRegistrationCredential, opts ...grpc.CallOption) (*MsgIssueRegistrationCredentialResponse, error)
 	// IssueUserCredential issue user credential to allow an account to transact
 	IssueUserCredential(ctx context.Context, in *MsgIssueUserCredential, opts ...grpc.CallOption) (*MsgIssueUserCredentialResponse, error)
+	// IssueParameterCredential issue public parameters for anonymous credentials
+	IssueAnonymousCredentialSchema(ctx context.Context, in *MsgIssueAnonymousCredentialSchema, opts ...grpc.CallOption) (*MsgIssueAnonymousCredentialSchemaResponse, error)
+	// UpdateSchemaAccumulatorState updates membership or non-membership state after adding or deleting members
+	UpdateAnonymousCredentialSchema(ctx context.Context, in *MsgUpdateAnonymousCredentialSchema, opts ...grpc.CallOption) (*MsgUpdateAnonymousCredentialSchemaResponse, error)
 	// RevokeCredential a credential
 	RevokeCredential(ctx context.Context, in *MsgRevokeCredential, opts ...grpc.CallOption) (*MsgRevokeCredentialResponse, error)
 }
@@ -489,7 +582,7 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 
 func (c *msgClient) IssueRegistrationCredential(ctx context.Context, in *MsgIssueRegistrationCredential, opts ...grpc.CallOption) (*MsgIssueRegistrationCredentialResponse, error) {
 	out := new(MsgIssueRegistrationCredentialResponse)
-	err := c.cc.Invoke(ctx, "/allinbits.cosmoscash.verifiablecredential.Msg/IssueRegistrationCredential", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wasmd.verifiablecredential.Msg/IssueRegistrationCredential", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +591,25 @@ func (c *msgClient) IssueRegistrationCredential(ctx context.Context, in *MsgIssu
 
 func (c *msgClient) IssueUserCredential(ctx context.Context, in *MsgIssueUserCredential, opts ...grpc.CallOption) (*MsgIssueUserCredentialResponse, error) {
 	out := new(MsgIssueUserCredentialResponse)
-	err := c.cc.Invoke(ctx, "/allinbits.cosmoscash.verifiablecredential.Msg/IssueUserCredential", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wasmd.verifiablecredential.Msg/IssueUserCredential", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) IssueAnonymousCredentialSchema(ctx context.Context, in *MsgIssueAnonymousCredentialSchema, opts ...grpc.CallOption) (*MsgIssueAnonymousCredentialSchemaResponse, error) {
+	out := new(MsgIssueAnonymousCredentialSchemaResponse)
+	err := c.cc.Invoke(ctx, "/wasmd.verifiablecredential.Msg/IssueAnonymousCredentialSchema", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateAnonymousCredentialSchema(ctx context.Context, in *MsgUpdateAnonymousCredentialSchema, opts ...grpc.CallOption) (*MsgUpdateAnonymousCredentialSchemaResponse, error) {
+	out := new(MsgUpdateAnonymousCredentialSchemaResponse)
+	err := c.cc.Invoke(ctx, "/wasmd.verifiablecredential.Msg/UpdateAnonymousCredentialSchema", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -507,7 +618,7 @@ func (c *msgClient) IssueUserCredential(ctx context.Context, in *MsgIssueUserCre
 
 func (c *msgClient) RevokeCredential(ctx context.Context, in *MsgRevokeCredential, opts ...grpc.CallOption) (*MsgRevokeCredentialResponse, error) {
 	out := new(MsgRevokeCredentialResponse)
-	err := c.cc.Invoke(ctx, "/allinbits.cosmoscash.verifiablecredential.Msg/RevokeCredential", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/wasmd.verifiablecredential.Msg/RevokeCredential", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -520,6 +631,10 @@ type MsgServer interface {
 	IssueRegistrationCredential(context.Context, *MsgIssueRegistrationCredential) (*MsgIssueRegistrationCredentialResponse, error)
 	// IssueUserCredential issue user credential to allow an account to transact
 	IssueUserCredential(context.Context, *MsgIssueUserCredential) (*MsgIssueUserCredentialResponse, error)
+	// IssueParameterCredential issue public parameters for anonymous credentials
+	IssueAnonymousCredentialSchema(context.Context, *MsgIssueAnonymousCredentialSchema) (*MsgIssueAnonymousCredentialSchemaResponse, error)
+	// UpdateSchemaAccumulatorState updates membership or non-membership state after adding or deleting members
+	UpdateAnonymousCredentialSchema(context.Context, *MsgUpdateAnonymousCredentialSchema) (*MsgUpdateAnonymousCredentialSchemaResponse, error)
 	// RevokeCredential a credential
 	RevokeCredential(context.Context, *MsgRevokeCredential) (*MsgRevokeCredentialResponse, error)
 }
@@ -533,6 +648,12 @@ func (*UnimplementedMsgServer) IssueRegistrationCredential(ctx context.Context, 
 }
 func (*UnimplementedMsgServer) IssueUserCredential(ctx context.Context, req *MsgIssueUserCredential) (*MsgIssueUserCredentialResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IssueUserCredential not implemented")
+}
+func (*UnimplementedMsgServer) IssueAnonymousCredentialSchema(ctx context.Context, req *MsgIssueAnonymousCredentialSchema) (*MsgIssueAnonymousCredentialSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IssueAnonymousCredentialSchema not implemented")
+}
+func (*UnimplementedMsgServer) UpdateAnonymousCredentialSchema(ctx context.Context, req *MsgUpdateAnonymousCredentialSchema) (*MsgUpdateAnonymousCredentialSchemaResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAnonymousCredentialSchema not implemented")
 }
 func (*UnimplementedMsgServer) RevokeCredential(ctx context.Context, req *MsgRevokeCredential) (*MsgRevokeCredentialResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeCredential not implemented")
@@ -552,7 +673,7 @@ func _Msg_IssueRegistrationCredential_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/allinbits.cosmoscash.verifiablecredential.Msg/IssueRegistrationCredential",
+		FullMethod: "/wasmd.verifiablecredential.Msg/IssueRegistrationCredential",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).IssueRegistrationCredential(ctx, req.(*MsgIssueRegistrationCredential))
@@ -570,10 +691,46 @@ func _Msg_IssueUserCredential_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/allinbits.cosmoscash.verifiablecredential.Msg/IssueUserCredential",
+		FullMethod: "/wasmd.verifiablecredential.Msg/IssueUserCredential",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).IssueUserCredential(ctx, req.(*MsgIssueUserCredential))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_IssueAnonymousCredentialSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgIssueAnonymousCredentialSchema)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).IssueAnonymousCredentialSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wasmd.verifiablecredential.Msg/IssueAnonymousCredentialSchema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).IssueAnonymousCredentialSchema(ctx, req.(*MsgIssueAnonymousCredentialSchema))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateAnonymousCredentialSchema_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateAnonymousCredentialSchema)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateAnonymousCredentialSchema(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wasmd.verifiablecredential.Msg/UpdateAnonymousCredentialSchema",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateAnonymousCredentialSchema(ctx, req.(*MsgUpdateAnonymousCredentialSchema))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -588,7 +745,7 @@ func _Msg_RevokeCredential_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/allinbits.cosmoscash.verifiablecredential.Msg/RevokeCredential",
+		FullMethod: "/wasmd.verifiablecredential.Msg/RevokeCredential",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).RevokeCredential(ctx, req.(*MsgRevokeCredential))
@@ -597,7 +754,7 @@ func _Msg_RevokeCredential_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 var _Msg_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "allinbits.cosmoscash.verifiablecredential.Msg",
+	ServiceName: "wasmd.verifiablecredential.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -607,6 +764,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IssueUserCredential",
 			Handler:    _Msg_IssueUserCredential_Handler,
+		},
+		{
+			MethodName: "IssueAnonymousCredentialSchema",
+			Handler:    _Msg_IssueAnonymousCredentialSchema_Handler,
+		},
+		{
+			MethodName: "UpdateAnonymousCredentialSchema",
+			Handler:    _Msg_UpdateAnonymousCredentialSchema_Handler,
 		},
 		{
 			MethodName: "RevokeCredential",
@@ -682,71 +847,6 @@ func (m *MsgIssueRegistrationCredentialResponse) MarshalToSizedBuffer(dAtA []byt
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgIssueLicenseCredential) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgIssueLicenseCredential) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgIssueLicenseCredential) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Owner) > 0 {
-		i -= len(m.Owner)
-		copy(dAtA[i:], m.Owner)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Credential != nil {
-		{
-			size, err := m.Credential.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgIssueLicenseCredentialResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgIssueLicenseCredentialResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgIssueLicenseCredentialResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func (m *MsgIssueUserCredential) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -805,6 +905,136 @@ func (m *MsgIssueUserCredentialResponse) MarshalTo(dAtA []byte) (int, error) {
 }
 
 func (m *MsgIssueUserCredentialResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgIssueAnonymousCredentialSchema) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgIssueAnonymousCredentialSchema) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgIssueAnonymousCredentialSchema) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Credential != nil {
+		{
+			size, err := m.Credential.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgIssueAnonymousCredentialSchemaResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgIssueAnonymousCredentialSchemaResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgIssueAnonymousCredentialSchemaResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateAnonymousCredentialSchema) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateAnonymousCredentialSchema) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateAnonymousCredentialSchema) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Owner)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Credential != nil {
+		{
+			size, err := m.Credential.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -974,32 +1204,6 @@ func (m *MsgIssueRegistrationCredentialResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgIssueLicenseCredential) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Credential != nil {
-		l = m.Credential.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.Owner)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgIssueLicenseCredentialResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
 func (m *MsgIssueUserCredential) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1018,6 +1222,58 @@ func (m *MsgIssueUserCredential) Size() (n int) {
 }
 
 func (m *MsgIssueUserCredentialResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgIssueAnonymousCredentialSchema) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Credential != nil {
+		l = m.Credential.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgIssueAnonymousCredentialSchemaResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateAnonymousCredentialSchema) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Credential != nil {
+		l = m.Credential.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Owner)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1252,174 +1508,6 @@ func (m *MsgIssueRegistrationCredentialResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgIssueLicenseCredential) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgIssueLicenseCredential: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgIssueLicenseCredential: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Credential", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Credential == nil {
-				m.Credential = &VerifiableCredential{}
-			}
-			if err := m.Credential.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Owner = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgIssueLicenseCredentialResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgIssueLicenseCredentialResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgIssueLicenseCredentialResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *MsgIssueUserCredential) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1565,6 +1653,342 @@ func (m *MsgIssueUserCredentialResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgIssueUserCredentialResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgIssueAnonymousCredentialSchema) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgIssueAnonymousCredentialSchema: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgIssueAnonymousCredentialSchema: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Credential", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Credential == nil {
+				m.Credential = &VerifiableCredential{}
+			}
+			if err := m.Credential.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgIssueAnonymousCredentialSchemaResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgIssueAnonymousCredentialSchemaResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgIssueAnonymousCredentialSchemaResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateAnonymousCredentialSchema) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateAnonymousCredentialSchema: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateAnonymousCredentialSchema: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Credential", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Credential == nil {
+				m.Credential = &VerifiableCredential{}
+			}
+			if err := m.Credential.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateAnonymousCredentialSchemaResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateAnonymousCredentialSchemaResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateAnonymousCredentialSchemaResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

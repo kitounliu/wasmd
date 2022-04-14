@@ -1,5 +1,5 @@
 syntax = "proto3";
-package allinbits.cosmoscash.did;
+package wasmd.did;
 
 option go_package = "github.com/CosmWasm/wasmd/x/did/types";
 

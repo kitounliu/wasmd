@@ -1,5 +1,5 @@
 syntax = "proto3";
-package allinbits.cosmoscash.verifiablecredential;
+package wasmd.verifiablecredential;
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -15,6 +15,10 @@ service Msg {
   rpc IssueRegistrationCredential(MsgIssueRegistrationCredential) returns (MsgIssueRegistrationCredentialResponse);
   // IssueUserCredential issue user credential to allow an account to transact
   rpc IssueUserCredential(MsgIssueUserCredential) returns (MsgIssueUserCredentialResponse);
+  // IssueParameterCredential issue public parameters for anonymous credentials
+  rpc IssueAnonymousCredentialSchema(MsgIssueAnonymousCredentialSchema) returns (MsgIssueAnonymousCredentialSchemaResponse);
+  // UpdateSchemaAccumulatorState updates membership or non-membership state after adding or deleting members
+  rpc UpdateAnonymousCredentialSchema(MsgUpdateAnonymousCredentialSchema) returns (MsgUpdateAnonymousCredentialSchemaResponse);
   // RevokeCredential a credential
   rpc RevokeCredential(MsgRevokeCredential) returns (MsgRevokeCredentialResponse);
 }
@@ -24,35 +28,45 @@ service Msg {
 message MsgIssueRegistrationCredential {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
-  allinbits.cosmoscash.verifiablecredential.VerifiableCredential credential = 1;
+  wasmd.verifiablecredential.VerifiableCredential credential = 1;
   string owner = 2;
 }
 
 // MsgIssueRegistrationCredentialResponse reply for the IssueRegistartion call
 message MsgIssueRegistrationCredentialResponse {}
 
-// MsgIssueLicenseCredential message contains data for license credential
-message MsgIssueLicenseCredential {
-  option (gogoproto.equal) = false;
-  option (gogoproto.goproto_getters) = false;
-  allinbits.cosmoscash.verifiablecredential.VerifiableCredential credential = 1;
-  string owner = 2;
-}
-
-// MsgIssueLicenseCredentialResponse reply for the issue license call
-message MsgIssueLicenseCredentialResponse {}
-
 // MsgIssueUserCredential defines sdk message to issue user credentials
 message MsgIssueUserCredential {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  allinbits.cosmoscash.verifiablecredential.VerifiableCredential credential = 1;
+  wasmd.verifiablecredential.VerifiableCredential credential = 1;
   string    owner = 2;
 }
 
 message MsgIssueUserCredentialResponse {}
 
+// MsgIssueParameterCredential message contains data for public parameters credential
+message MsgIssueAnonymousCredentialSchema {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  wasmd.verifiablecredential.VerifiableCredential credential = 1;
+  string owner = 2;
+}
+
+// MsgIssueLicenseCredentialResponse reply for the issue license call
+message MsgIssueAnonymousCredentialSchemaResponse {}
+
+// MsgUpdateSchemaAccumulatorState message contains data for adding/deleting members from the state
+message MsgUpdateAnonymousCredentialSchema {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  wasmd.verifiablecredential.VerifiableCredential credential = 1;
+  string owner = 2;
+}
+
+// MsgUpdateSchemaAccumulatorStateResponse reply for the issue license call
+message MsgUpdateAnonymousCredentialSchemaResponse {}
 
 // MsgRevokeCredential
 message MsgRevokeCredential {

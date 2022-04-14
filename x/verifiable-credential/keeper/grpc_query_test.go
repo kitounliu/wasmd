@@ -3,6 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"time"
+
+	didtypes "github.com/CosmWasm/wasmd/x/did/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 )
@@ -62,41 +66,50 @@ func (suite *KeeperTestSuite) TestGRPCQueryVerifiableCredential() {
 			},
 			false,
 		},
-		//{
-		//	"Pass: will pass because a vc is found",
-		//	func() {
-		//		cs := types.NewUserCredentialSubject(
-		//			"accAddr",
-		//			"root",
-		//			true,
-		//		)
-		//
-		//		vc := types.NewUserVerifiableCredential(
-		//			"new-verifiable-cred-3",
-		//			"accAddr",
-		//			time.Now(),
-		//			cs,
-		//		)
-		//		suite.keeper.SetVerifiableCredential(
-		//			suite.ctx,
-		//			[]byte(vc.Id),
-		//			vc,
-		//		)
-		//		req = &types.QueryVerifiableCredentialRequest{
-		//			VerifiableCredentialId: vc.Id,
-		//		}
-		//	},
-		//	true,
-		//},
+		{
+			"Pass: will pass because a vc is found",
+			func() {
+				// create a new user credential before query
+				server := NewMsgServerImpl(suite.keeper)
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				aliceDid := didtypes.DID("did:cosmos:net:test:alice")
+				issuerAddress := suite.GetIssuerAddress()
+				vc := types.NewUserVerifiableCredential(
+					"registraion-credential-for-alice-2022-04-14",
+					issuerDid.String(),
+					time.Now(),
+					types.NewUserCredentialSubject(
+						aliceDid.String(),
+						"b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+						true,
+					),
+				)
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				vcReq := types.MsgIssueUserCredential{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+				_, err := server.IssueUserCredential(sdk.WrapSDKContext(suite.ctx), &vcReq)
+				suite.NoError(err)
+
+				// request for query
+				req = &types.QueryVerifiableCredentialRequest{
+					VerifiableCredentialId: vc.Id,
+				}
+			},
+			true,
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			tc.malleate()
-			didsResp, err := queryClient.VerifiableCredential(context.Background(), req)
+			vcResp, err := queryClient.VerifiableCredential(context.Background(), req)
 			if tc.expPass {
 				suite.NoError(err)
-				suite.NotNil(didsResp)
-
+				suite.NotNil(vcResp)
 			} else {
 				suite.Require().Error(err)
 			}

@@ -60,11 +60,12 @@ type VerifiableCredential struct {
 	// Types that are valid to be assigned to CredentialSubject:
 	//	*VerifiableCredential_RegistrationCred
 	//	*VerifiableCredential_UserCred
+	//	*VerifiableCredential_AnonCredSchema
 	CredentialSubject isVerifiableCredential_CredentialSubject `protobuf_oneof:"credential_subject"`
 	// One or more cryptographic proofs that can be used to detect tampering
 	// and verify the authorship of a credential or presentation. The specific
 	// method used for an embedded proof MUST be included using the type property.
-	Proof *Proof `protobuf:"bytes,10,opt,name=proof,proto3" json:"proof,omitempty"`
+	Proof *Proof `protobuf:"bytes,9,opt,name=proof,proto3" json:"proof,omitempty"`
 }
 
 func (m *VerifiableCredential) Reset()         { *m = VerifiableCredential{} }
@@ -112,9 +113,13 @@ type VerifiableCredential_RegistrationCred struct {
 type VerifiableCredential_UserCred struct {
 	UserCred *UserCredentialSubject `protobuf:"bytes,7,opt,name=user_cred,json=userCred,proto3,oneof" json:"user_cred,omitempty"`
 }
+type VerifiableCredential_AnonCredSchema struct {
+	AnonCredSchema *AnonymousCredentialSchemaSubject `protobuf:"bytes,8,opt,name=anon_cred_schema,json=anonCredSchema,proto3,oneof" json:"anon_cred_schema,omitempty"`
+}
 
 func (*VerifiableCredential_RegistrationCred) isVerifiableCredential_CredentialSubject() {}
 func (*VerifiableCredential_UserCred) isVerifiableCredential_CredentialSubject()         {}
+func (*VerifiableCredential_AnonCredSchema) isVerifiableCredential_CredentialSubject()   {}
 
 func (m *VerifiableCredential) GetCredentialSubject() isVerifiableCredential_CredentialSubject {
 	if m != nil {
@@ -172,6 +177,13 @@ func (m *VerifiableCredential) GetUserCred() *UserCredentialSubject {
 	return nil
 }
 
+func (m *VerifiableCredential) GetAnonCredSchema() *AnonymousCredentialSchemaSubject {
+	if x, ok := m.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema); ok {
+		return x.AnonCredSchema
+	}
+	return nil
+}
+
 func (m *VerifiableCredential) GetProof() *Proof {
 	if m != nil {
 		return m.Proof
@@ -184,6 +196,179 @@ func (*VerifiableCredential) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
 		(*VerifiableCredential_RegistrationCred)(nil),
 		(*VerifiableCredential_UserCred)(nil),
+		(*VerifiableCredential_AnonCredSchema)(nil),
+	}
+}
+
+type AnonymousCredentialSchemaSubject struct {
+	// id is for compatibility with other types of credentials
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type          []string               `protobuf:"bytes,2,rep,name=type,proto3" json:"type,omitempty"`
+	BbsPlusParams string                 `protobuf:"bytes,3,opt,name=bbs_plus_params,json=bbsPlusParams,proto3" json:"bbs_plus_params,omitempty"`
+	AccumParams   *AccumulatorParameters `protobuf:"bytes,4,opt,name=accum_params,json=accumParams,proto3" json:"accum_params,omitempty"`
+}
+
+func (m *AnonymousCredentialSchemaSubject) Reset()         { *m = AnonymousCredentialSchemaSubject{} }
+func (m *AnonymousCredentialSchemaSubject) String() string { return proto.CompactTextString(m) }
+func (*AnonymousCredentialSchemaSubject) ProtoMessage()    {}
+func (*AnonymousCredentialSchemaSubject) Descriptor() ([]byte, []int) {
+	return fileDescriptor_caa28180a9dfbf42, []int{1}
+}
+func (m *AnonymousCredentialSchemaSubject) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AnonymousCredentialSchemaSubject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AnonymousCredentialSchemaSubject.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AnonymousCredentialSchemaSubject) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnonymousCredentialSchemaSubject.Merge(m, src)
+}
+func (m *AnonymousCredentialSchemaSubject) XXX_Size() int {
+	return m.Size()
+}
+func (m *AnonymousCredentialSchemaSubject) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnonymousCredentialSchemaSubject.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AnonymousCredentialSchemaSubject proto.InternalMessageInfo
+
+func (m *AnonymousCredentialSchemaSubject) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *AnonymousCredentialSchemaSubject) GetType() []string {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (m *AnonymousCredentialSchemaSubject) GetBbsPlusParams() string {
+	if m != nil {
+		return m.BbsPlusParams
+	}
+	return ""
+}
+
+func (m *AnonymousCredentialSchemaSubject) GetAccumParams() *AccumulatorParameters {
+	if m != nil {
+		return m.AccumParams
+	}
+	return nil
+}
+
+type AccumulatorParameters struct {
+	Type         []string `protobuf:"bytes,1,rep,name=type,proto3" json:"type,omitempty"`
+	PublicParams string   `protobuf:"bytes,2,opt,name=public_params,json=publicParams,proto3" json:"public_params,omitempty"`
+	// state is used together with accumulator for revocation
+	//
+	// Types that are valid to be assigned to State:
+	//	*AccumulatorParameters_MembershipState
+	//	*AccumulatorParameters_NonMembershipState
+	State isAccumulatorParameters_State `protobuf_oneof:"state"`
+}
+
+func (m *AccumulatorParameters) Reset()         { *m = AccumulatorParameters{} }
+func (m *AccumulatorParameters) String() string { return proto.CompactTextString(m) }
+func (*AccumulatorParameters) ProtoMessage()    {}
+func (*AccumulatorParameters) Descriptor() ([]byte, []int) {
+	return fileDescriptor_caa28180a9dfbf42, []int{2}
+}
+func (m *AccumulatorParameters) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AccumulatorParameters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AccumulatorParameters.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AccumulatorParameters) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AccumulatorParameters.Merge(m, src)
+}
+func (m *AccumulatorParameters) XXX_Size() int {
+	return m.Size()
+}
+func (m *AccumulatorParameters) XXX_DiscardUnknown() {
+	xxx_messageInfo_AccumulatorParameters.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AccumulatorParameters proto.InternalMessageInfo
+
+type isAccumulatorParameters_State interface {
+	isAccumulatorParameters_State()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type AccumulatorParameters_MembershipState struct {
+	MembershipState string `protobuf:"bytes,3,opt,name=membership_state,json=membershipState,proto3,oneof" json:"membership_state,omitempty"`
+}
+type AccumulatorParameters_NonMembershipState struct {
+	NonMembershipState string `protobuf:"bytes,4,opt,name=non_membership_state,json=nonMembershipState,proto3,oneof" json:"non_membership_state,omitempty"`
+}
+
+func (*AccumulatorParameters_MembershipState) isAccumulatorParameters_State()    {}
+func (*AccumulatorParameters_NonMembershipState) isAccumulatorParameters_State() {}
+
+func (m *AccumulatorParameters) GetState() isAccumulatorParameters_State {
+	if m != nil {
+		return m.State
+	}
+	return nil
+}
+
+func (m *AccumulatorParameters) GetType() []string {
+	if m != nil {
+		return m.Type
+	}
+	return nil
+}
+
+func (m *AccumulatorParameters) GetPublicParams() string {
+	if m != nil {
+		return m.PublicParams
+	}
+	return ""
+}
+
+func (m *AccumulatorParameters) GetMembershipState() string {
+	if x, ok := m.GetState().(*AccumulatorParameters_MembershipState); ok {
+		return x.MembershipState
+	}
+	return ""
+}
+
+func (m *AccumulatorParameters) GetNonMembershipState() string {
+	if x, ok := m.GetState().(*AccumulatorParameters_NonMembershipState); ok {
+		return x.NonMembershipState
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*AccumulatorParameters) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*AccumulatorParameters_MembershipState)(nil),
+		(*AccumulatorParameters_NonMembershipState)(nil),
 	}
 }
 
@@ -200,7 +385,7 @@ func (m *UserCredentialSubject) Reset()         { *m = UserCredentialSubject{} }
 func (m *UserCredentialSubject) String() string { return proto.CompactTextString(m) }
 func (*UserCredentialSubject) ProtoMessage()    {}
 func (*UserCredentialSubject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{1}
+	return fileDescriptor_caa28180a9dfbf42, []int{3}
 }
 func (m *UserCredentialSubject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -264,7 +449,7 @@ func (m *RegistrationCredentialSubject) Reset()         { *m = RegistrationCrede
 func (m *RegistrationCredentialSubject) String() string { return proto.CompactTextString(m) }
 func (*RegistrationCredentialSubject) ProtoMessage()    {}
 func (*RegistrationCredentialSubject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{2}
+	return fileDescriptor_caa28180a9dfbf42, []int{4}
 }
 func (m *RegistrationCredentialSubject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -330,7 +515,7 @@ func (m *LegalPerson) Reset()         { *m = LegalPerson{} }
 func (m *LegalPerson) String() string { return proto.CompactTextString(m) }
 func (*LegalPerson) ProtoMessage()    {}
 func (*LegalPerson) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{3}
+	return fileDescriptor_caa28180a9dfbf42, []int{5}
 }
 func (m *LegalPerson) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -368,7 +553,7 @@ func (m *Name) Reset()         { *m = Name{} }
 func (m *Name) String() string { return proto.CompactTextString(m) }
 func (*Name) ProtoMessage()    {}
 func (*Name) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{4}
+	return fileDescriptor_caa28180a9dfbf42, []int{6}
 }
 func (m *Name) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -410,7 +595,7 @@ func (m *Address) Reset()         { *m = Address{} }
 func (m *Address) String() string { return proto.CompactTextString(m) }
 func (*Address) ProtoMessage()    {}
 func (*Address) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{5}
+	return fileDescriptor_caa28180a9dfbf42, []int{7}
 }
 func (m *Address) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -448,7 +633,7 @@ func (m *Id) Reset()         { *m = Id{} }
 func (m *Id) String() string { return proto.CompactTextString(m) }
 func (*Id) ProtoMessage()    {}
 func (*Id) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{6}
+	return fileDescriptor_caa28180a9dfbf42, []int{8}
 }
 func (m *Id) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -506,7 +691,7 @@ func (m *Proof) Reset()         { *m = Proof{} }
 func (m *Proof) String() string { return proto.CompactTextString(m) }
 func (*Proof) ProtoMessage()    {}
 func (*Proof) Descriptor() ([]byte, []int) {
-	return fileDescriptor_caa28180a9dfbf42, []int{7}
+	return fileDescriptor_caa28180a9dfbf42, []int{9}
 }
 func (m *Proof) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -570,15 +755,59 @@ func (m *Proof) GetSignature() string {
 	return ""
 }
 
+// VcMetadata defines metadata associated to a verifiable credential document
+type VcMetadata struct {
+	VersionId   string     `protobuf:"bytes,1,opt,name=versionId,proto3" json:"versionId,omitempty"`
+	Created     *time.Time `protobuf:"bytes,2,opt,name=created,proto3,stdtime" json:"created,omitempty"`
+	Updated     *time.Time `protobuf:"bytes,3,opt,name=updated,proto3,stdtime" json:"updated,omitempty"`
+	Deactivated bool       `protobuf:"varint,4,opt,name=deactivated,proto3" json:"deactivated,omitempty"`
+}
+
+func (m *VcMetadata) Reset()         { *m = VcMetadata{} }
+func (m *VcMetadata) String() string { return proto.CompactTextString(m) }
+func (*VcMetadata) ProtoMessage()    {}
+func (*VcMetadata) Descriptor() ([]byte, []int) {
+	return fileDescriptor_caa28180a9dfbf42, []int{10}
+}
+func (m *VcMetadata) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VcMetadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VcMetadata.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VcMetadata) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VcMetadata.Merge(m, src)
+}
+func (m *VcMetadata) XXX_Size() int {
+	return m.Size()
+}
+func (m *VcMetadata) XXX_DiscardUnknown() {
+	xxx_messageInfo_VcMetadata.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VcMetadata proto.InternalMessageInfo
+
 func init() {
-	proto.RegisterType((*VerifiableCredential)(nil), "allinbits.cosmoscash.verifiablecredential.VerifiableCredential")
-	proto.RegisterType((*UserCredentialSubject)(nil), "allinbits.cosmoscash.verifiablecredential.UserCredentialSubject")
-	proto.RegisterType((*RegistrationCredentialSubject)(nil), "allinbits.cosmoscash.verifiablecredential.RegistrationCredentialSubject")
-	proto.RegisterType((*LegalPerson)(nil), "allinbits.cosmoscash.verifiablecredential.LegalPerson")
-	proto.RegisterType((*Name)(nil), "allinbits.cosmoscash.verifiablecredential.Name")
-	proto.RegisterType((*Address)(nil), "allinbits.cosmoscash.verifiablecredential.Address")
-	proto.RegisterType((*Id)(nil), "allinbits.cosmoscash.verifiablecredential.Id")
-	proto.RegisterType((*Proof)(nil), "allinbits.cosmoscash.verifiablecredential.Proof")
+	proto.RegisterType((*VerifiableCredential)(nil), "wasmd.verifiablecredential.VerifiableCredential")
+	proto.RegisterType((*AnonymousCredentialSchemaSubject)(nil), "wasmd.verifiablecredential.AnonymousCredentialSchemaSubject")
+	proto.RegisterType((*AccumulatorParameters)(nil), "wasmd.verifiablecredential.AccumulatorParameters")
+	proto.RegisterType((*UserCredentialSubject)(nil), "wasmd.verifiablecredential.UserCredentialSubject")
+	proto.RegisterType((*RegistrationCredentialSubject)(nil), "wasmd.verifiablecredential.RegistrationCredentialSubject")
+	proto.RegisterType((*LegalPerson)(nil), "wasmd.verifiablecredential.LegalPerson")
+	proto.RegisterType((*Name)(nil), "wasmd.verifiablecredential.Name")
+	proto.RegisterType((*Address)(nil), "wasmd.verifiablecredential.Address")
+	proto.RegisterType((*Id)(nil), "wasmd.verifiablecredential.Id")
+	proto.RegisterType((*Proof)(nil), "wasmd.verifiablecredential.Proof")
+	proto.RegisterType((*VcMetadata)(nil), "wasmd.verifiablecredential.VcMetadata")
 }
 
 func init() {
@@ -586,60 +815,115 @@ func init() {
 }
 
 var fileDescriptor_caa28180a9dfbf42 = []byte{
-	// 806 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x55, 0xcf, 0x6f, 0xdc, 0x44,
-	0x14, 0x5e, 0x6f, 0x36, 0xd9, 0xdd, 0xb7, 0x09, 0x82, 0x21, 0x54, 0x26, 0xc0, 0x6e, 0xb4, 0x5c,
-	0x16, 0x89, 0xd8, 0xed, 0x22, 0x01, 0x42, 0x42, 0x94, 0x94, 0xa2, 0x56, 0x2a, 0x28, 0x98, 0x52,
-	0x24, 0x40, 0xb2, 0xc6, 0xf6, 0x8b, 0x33, 0xc8, 0xf6, 0x58, 0x33, 0xe3, 0xb6, 0x7b, 0xe6, 0xc2,
-	0xb1, 0x77, 0x2e, 0xbd, 0x72, 0xe7, 0x8f, 0xe0, 0xd8, 0x23, 0x27, 0x40, 0xc9, 0x05, 0xf1, 0x57,
-	0xa0, 0xf9, 0xb1, 0xde, 0x55, 0x08, 0xa8, 0x7b, 0x7b, 0x3f, 0xe6, 0xfb, 0x3e, 0xbf, 0xf7, 0xe6,
-	0x8d, 0xe1, 0xc3, 0x94, 0xcb, 0x92, 0xcb, 0xa3, 0x94, 0xca, 0xb3, 0xf0, 0x21, 0x0a, 0x76, 0xca,
-	0x68, 0x52, 0xe0, 0x51, 0x2a, 0x30, 0xc3, 0x4a, 0x31, 0x5a, 0x5c, 0x1d, 0x0d, 0x6a, 0xc1, 0x15,
-	0x27, 0x6f, 0xd1, 0xa2, 0x60, 0x55, 0xc2, 0x94, 0x0c, 0x2c, 0x91, 0xe6, 0x09, 0x56, 0x88, 0x15,
-	0xe0, 0x60, 0x3f, 0xe7, 0x39, 0x37, 0xa8, 0x50, 0x5b, 0x96, 0xe0, 0x60, 0x92, 0x73, 0x9e, 0x17,
-	0x18, 0x1a, 0x2f, 0x69, 0x4e, 0x43, 0xc5, 0x4a, 0x94, 0x8a, 0x96, 0xb5, 0x3b, 0x30, 0xb6, 0xbc,
-	0x61, 0x42, 0x25, 0x86, 0x0f, 0x6f, 0x24, 0xa8, 0xe8, 0x8d, 0x30, 0xe5, 0xac, 0xb2, 0xf9, 0xe9,
-	0x0f, 0x3d, 0xd8, 0x7f, 0xd0, 0xea, 0xdd, 0x6a, 0xf5, 0xc8, 0x75, 0xe8, 0xa7, 0xbc, 0x52, 0xf8,
-	0x58, 0xf9, 0xde, 0xe1, 0xd6, 0x6c, 0x78, 0x7c, 0xed, 0xef, 0xdf, 0x27, 0xe4, 0xa6, 0x8b, 0xbd,
-	0xcd, 0x4b, 0xa6, 0xb0, 0xac, 0xd5, 0x22, 0x5a, 0x1e, 0x23, 0x2f, 0x40, 0x97, 0x65, 0x7e, 0xf7,
-	0xd0, 0x9b, 0x0d, 0xa3, 0x2e, 0xcb, 0x08, 0x81, 0x9e, 0x5a, 0xd4, 0xe8, 0x6f, 0x69, 0x78, 0x64,
-	0x6c, 0x72, 0x0d, 0x76, 0x98, 0x94, 0x0d, 0x0a, 0xbf, 0x67, 0xce, 0x39, 0x8f, 0xdc, 0x86, 0x3d,
-	0x6d, 0xd1, 0x2a, 0xc5, 0x38, 0xa3, 0x0a, 0xfd, 0xed, 0x43, 0x6f, 0x36, 0x9a, 0x1f, 0x04, 0xb6,
-	0xbe, 0x60, 0x59, 0x5f, 0x70, 0x7f, 0x59, 0xdf, 0x71, 0xef, 0xc9, 0x1f, 0x13, 0x2f, 0xda, 0x5d,
-	0xc2, 0x3e, 0xa1, 0x0a, 0xc9, 0x23, 0x78, 0x49, 0x60, 0xce, 0xa4, 0x12, 0x54, 0x31, 0x5e, 0xc5,
-	0xba, 0x7f, 0xfe, 0x8e, 0xa1, 0xba, 0x13, 0x3c, 0x77, 0xaf, 0x83, 0x68, 0x8d, 0x63, 0xd5, 0x92,
-	0x2f, 0x9b, 0xe4, 0x7b, 0x4c, 0xd5, 0x9d, 0x4e, 0xf4, 0xa2, 0xb8, 0x74, 0x80, 0xc4, 0x30, 0x6c,
-	0x24, 0x0a, 0x2b, 0xd8, 0x37, 0x82, 0x37, 0x37, 0x10, 0xfc, 0x4a, 0xa2, 0xb8, 0x4a, 0x68, 0xd0,
-	0xb8, 0x04, 0xf9, 0x14, 0xb6, 0x6b, 0xc1, 0xf9, 0xa9, 0x0f, 0x86, 0xfc, 0xfa, 0x06, 0xe4, 0x27,
-	0x1a, 0x17, 0x59, 0xf8, 0xf1, 0x3e, 0x90, 0x55, 0x2a, 0x96, 0x56, 0x69, 0xfa, 0x1d, 0xbc, 0x72,
-	0xe5, 0x27, 0xb8, 0x99, 0x7a, 0xeb, 0x33, 0x15, 0x9c, 0x2b, 0x37, 0x65, 0x63, 0x93, 0x09, 0x8c,
-	0x98, 0x8c, 0xad, 0x34, 0x66, 0xfe, 0xd6, 0xa1, 0x37, 0x1b, 0x44, 0xc0, 0xe4, 0x03, 0x17, 0x99,
-	0xfe, 0xd4, 0x85, 0x37, 0xfe, 0xb7, 0xa5, 0xff, 0x92, 0xb9, 0x07, 0x7d, 0x9a, 0x65, 0x02, 0xa5,
-	0x34, 0x4a, 0xa3, 0xf9, 0x7c, 0x83, 0x7a, 0x3f, 0xb6, 0xc8, 0x68, 0x49, 0x41, 0x3e, 0x82, 0x2d,
-	0x96, 0x49, 0x73, 0x0f, 0x47, 0xf3, 0xa3, 0x0d, 0x98, 0xee, 0x66, 0x91, 0x46, 0x92, 0x6f, 0x61,
-	0xaf, 0xc0, 0x9c, 0x16, 0x71, 0x8d, 0x42, 0xf2, 0x4a, 0xfa, 0x3d, 0x43, 0xf5, 0xee, 0x06, 0x54,
-	0xf7, 0x34, 0xfe, 0xc4, 0xc0, 0xa3, 0xdd, 0x62, 0xe5, 0xc8, 0xe9, 0x02, 0x46, 0x6b, 0x49, 0x72,
-	0x1b, 0xb6, 0x2b, 0x5a, 0xa2, 0x34, 0x5b, 0x37, 0x9a, 0x87, 0x1b, 0x68, 0x7c, 0x4e, 0x4b, 0x8c,
-	0x2c, 0x9a, 0xbc, 0x0a, 0x83, 0x54, 0x89, 0x45, 0x2c, 0x30, 0x77, 0xc3, 0xea, 0x6b, 0x3f, 0xc2,
-	0xfc, 0x83, 0xc1, 0x8f, 0x4f, 0x27, 0x9d, 0xbf, 0x9e, 0x4e, 0x3a, 0xd3, 0xf7, 0xa1, 0xa7, 0x31,
-	0x7a, 0xaa, 0x1a, 0xe5, 0x06, 0x60, 0xec, 0x76, 0x7b, 0xdd, 0xa4, 0xb5, 0xbd, 0x86, 0xfc, 0xc5,
-	0x83, 0xbe, 0xeb, 0x33, 0x79, 0x0d, 0x86, 0xba, 0xd3, 0xb1, 0x39, 0x6e, 0x29, 0x06, 0x3a, 0x70,
-	0xdf, 0x2d, 0xbc, 0x3a, 0x3b, 0xa5, 0x62, 0x49, 0xe4, 0x3c, 0xe2, 0x43, 0xbf, 0x16, 0x58, 0x32,
-	0x89, 0xe6, 0xc2, 0x0c, 0xa3, 0xa5, 0x4b, 0x0e, 0x60, 0x50, 0x73, 0xa9, 0x52, 0x9e, 0xa1, 0x7b,
-	0x24, 0x5a, 0x5f, 0xe7, 0x0a, 0x9e, 0xd2, 0x82, 0xa9, 0x85, 0x79, 0x21, 0x86, 0x51, 0xeb, 0x6b,
-	0xc6, 0x94, 0x37, 0x95, 0x12, 0x0b, 0xb3, 0xf1, 0xba, 0x60, 0xeb, 0xae, 0x7d, 0xf6, 0x0c, 0xba,
-	0x77, 0xb3, 0xab, 0x2e, 0xf5, 0xe5, 0x52, 0xa7, 0x3f, 0x7b, 0xb0, 0x6d, 0x16, 0xa7, 0xcd, 0x7a,
-	0xab, 0xac, 0xd1, 0x12, 0x48, 0x15, 0x66, 0x6d, 0x73, 0xad, 0x4b, 0xde, 0x84, 0x3d, 0xb3, 0x68,
-	0x71, 0xdd, 0x88, 0x9a, 0xb7, 0xd5, 0xed, 0x9a, 0xe0, 0x89, 0x8d, 0x91, 0x10, 0x5e, 0xb6, 0x03,
-	0x4c, 0xed, 0x33, 0x55, 0xa2, 0x3a, 0xe3, 0x99, 0xab, 0x96, 0xac, 0xa7, 0x3e, 0x33, 0x19, 0xf2,
-	0x3a, 0x0c, 0x25, 0xcb, 0x2b, 0xaa, 0x1a, 0x81, 0xae, 0xf0, 0x55, 0xe0, 0xf8, 0x8b, 0x5f, 0xcf,
-	0xc7, 0xde, 0xb3, 0xf3, 0xb1, 0xf7, 0xe7, 0xf9, 0xd8, 0x7b, 0x72, 0x31, 0xee, 0x3c, 0xbb, 0x18,
-	0x77, 0x7e, 0xbb, 0x18, 0x77, 0xbe, 0x79, 0x2f, 0x67, 0xea, 0xac, 0x49, 0x82, 0x94, 0x97, 0xe1,
-	0x2d, 0x2e, 0xcb, 0xaf, 0xa9, 0x2c, 0xc3, 0x47, 0x54, 0x96, 0x59, 0xf8, 0xf8, 0x3f, 0x7e, 0x57,
-	0xba, 0x3e, 0x99, 0xec, 0x98, 0x07, 0xf7, 0x9d, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x60, 0xaf,
-	0x94, 0x77, 0xe0, 0x06, 0x00, 0x00,
+	// 1036 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x56, 0xcf, 0x6f, 0x1b, 0xc5,
+	0x17, 0xf7, 0x26, 0x4e, 0x6c, 0x3f, 0x27, 0x6d, 0xbe, 0xf3, 0x4d, 0x2b, 0x13, 0xc0, 0x36, 0xae,
+	0x04, 0x91, 0xa0, 0xde, 0x26, 0x48, 0x14, 0x22, 0x2a, 0xd1, 0x14, 0xa4, 0x46, 0x6a, 0x90, 0xd9,
+	0x86, 0x20, 0x21, 0xa4, 0xd5, 0xec, 0xee, 0x64, 0x3d, 0xd5, 0xee, 0xce, 0x6a, 0x66, 0x36, 0xd4,
+	0xff, 0x01, 0xc7, 0xfe, 0x09, 0xbd, 0x72, 0xe7, 0xc4, 0x89, 0x03, 0x07, 0x4e, 0xa8, 0x47, 0x4e,
+	0x80, 0x92, 0x0b, 0xe2, 0xc0, 0xdf, 0x80, 0xe6, 0xc7, 0xae, 0xb7, 0x24, 0x75, 0x7b, 0xdb, 0xf7,
+	0xde, 0xe7, 0xf3, 0x79, 0x3f, 0xe6, 0xcd, 0xd8, 0x70, 0x27, 0x64, 0x22, 0x65, 0xe2, 0x66, 0x88,
+	0xc5, 0xd4, 0x3d, 0x25, 0x9c, 0x9e, 0x50, 0x1c, 0x24, 0xe4, 0x66, 0xc8, 0x49, 0x44, 0x32, 0x49,
+	0x71, 0x72, 0xb9, 0x77, 0x9c, 0x73, 0x26, 0x19, 0xda, 0xfa, 0x16, 0x8b, 0x34, 0x1a, 0xcf, 0x21,
+	0x73, 0xc4, 0xd6, 0x66, 0xcc, 0x62, 0xa6, 0x61, 0xae, 0xfa, 0x32, 0x8c, 0xad, 0x41, 0xcc, 0x58,
+	0x9c, 0x10, 0x57, 0x5b, 0x41, 0x71, 0xe2, 0x4a, 0x9a, 0x12, 0x21, 0x71, 0x9a, 0x5b, 0x40, 0xdf,
+	0x54, 0xe4, 0x06, 0x58, 0x10, 0xf7, 0x74, 0x27, 0x20, 0x12, 0xef, 0xb8, 0x21, 0xa3, 0x99, 0x89,
+	0x8f, 0x7e, 0x6a, 0xc2, 0xe6, 0x71, 0x95, 0xef, 0x5e, 0x95, 0x0f, 0xdd, 0x82, 0x56, 0xc8, 0x32,
+	0x49, 0x1e, 0xcb, 0x9e, 0x33, 0x5c, 0xde, 0xee, 0xec, 0x5f, 0xff, 0xfb, 0xf7, 0x01, 0xfa, 0xc4,
+	0xfa, 0xde, 0x63, 0x29, 0x95, 0x24, 0xcd, 0xe5, 0xcc, 0x2b, 0x61, 0xe8, 0x0a, 0x2c, 0xd1, 0xa8,
+	0xb7, 0x34, 0x74, 0xb6, 0x3b, 0xde, 0x12, 0x8d, 0x10, 0x82, 0xa6, 0x9c, 0xe5, 0xa4, 0xb7, 0xac,
+	0xe8, 0x9e, 0xfe, 0x46, 0xd7, 0x61, 0x95, 0x0a, 0x51, 0x10, 0xde, 0x6b, 0x6a, 0x9c, 0xb5, 0xd0,
+	0x67, 0xb0, 0xae, 0xbe, 0x70, 0x16, 0x12, 0x3f, 0xc2, 0x92, 0xf4, 0x56, 0x86, 0xce, 0x76, 0x77,
+	0x77, 0x6b, 0x6c, 0xfa, 0x1b, 0x97, 0xfd, 0x8d, 0x8f, 0xca, 0xfe, 0xf6, 0x9b, 0x4f, 0xfe, 0x18,
+	0x38, 0xde, 0x5a, 0x49, 0xfb, 0x14, 0x4b, 0x82, 0xa6, 0xf0, 0x3f, 0x4e, 0x62, 0x2a, 0x24, 0xc7,
+	0x92, 0xb2, 0xcc, 0x57, 0xf3, 0xeb, 0xad, 0x6a, 0xa9, 0x8f, 0xc6, 0x2f, 0x1e, 0xee, 0xd8, 0xab,
+	0x91, 0xe6, 0x33, 0x78, 0x58, 0x04, 0x8f, 0x48, 0x28, 0xef, 0x37, 0xbc, 0x0d, 0xfe, 0x1f, 0x00,
+	0x9a, 0x40, 0xa7, 0x10, 0x84, 0x9b, 0x0c, 0x2d, 0x9d, 0x61, 0x67, 0x51, 0x86, 0x2f, 0x05, 0xe1,
+	0x97, 0x29, 0xb7, 0x0b, 0x1b, 0x40, 0x53, 0xd8, 0xc0, 0x99, 0xad, 0xd9, 0x17, 0xe1, 0x94, 0xa4,
+	0xb8, 0xd7, 0xd6, 0xc2, 0x1f, 0x2f, 0x12, 0xbe, 0x9b, 0xb1, 0x6c, 0x96, 0xb2, 0x42, 0xd4, 0xd4,
+	0x35, 0x79, 0x9e, 0xe3, 0x8a, 0xd2, 0x55, 0x61, 0x13, 0x40, 0xb7, 0x61, 0x25, 0xe7, 0x8c, 0x9d,
+	0xf4, 0x3a, 0x5a, 0xfe, 0xad, 0x45, 0xf2, 0x13, 0x05, 0xf4, 0x0c, 0x7e, 0x7f, 0x13, 0xd0, 0x3c,
+	0xe4, 0x0b, 0x93, 0x60, 0xf4, 0xb3, 0x03, 0xc3, 0x97, 0x55, 0x61, 0x97, 0xc3, 0xb9, 0xb0, 0x1c,
+	0x4b, 0xb5, 0xe5, 0x78, 0x1b, 0xae, 0x06, 0x81, 0xf0, 0xf3, 0xa4, 0x10, 0x7e, 0x8e, 0x39, 0x4e,
+	0x45, 0x6f, 0x59, 0x13, 0xd6, 0x83, 0x40, 0x4c, 0x92, 0x42, 0x4c, 0xb4, 0x13, 0x1d, 0xc1, 0x1a,
+	0x0e, 0xc3, 0x22, 0x2d, 0x41, 0xcd, 0x97, 0x8f, 0xff, 0xae, 0xc2, 0x17, 0x09, 0x96, 0x8c, 0x6b,
+	0x11, 0x22, 0x09, 0x17, 0x5e, 0x57, 0xcb, 0x18, 0xd5, 0xd1, 0x8f, 0x0e, 0x5c, 0xbb, 0x14, 0x56,
+	0xd5, 0xea, 0xd4, 0x6a, 0xbd, 0x01, 0xeb, 0x79, 0x11, 0x24, 0x34, 0x2c, 0x8b, 0x30, 0x7b, 0xbf,
+	0x66, 0x9c, 0xb6, 0xd0, 0x77, 0x61, 0x23, 0x25, 0x69, 0x40, 0xb8, 0x98, 0xd2, 0xdc, 0x17, 0x52,
+	0x2d, 0xb6, 0xee, 0xe8, 0x7e, 0xc3, 0xbb, 0x3a, 0x8f, 0x3c, 0x54, 0x01, 0xb4, 0x0b, 0x9b, 0xea,
+	0xf8, 0x2f, 0x10, 0x9a, 0x96, 0x80, 0x32, 0x96, 0x1d, 0x3e, 0xcf, 0xd9, 0x6f, 0xc1, 0x8a, 0x06,
+	0x8d, 0xbe, 0x81, 0x6b, 0x97, 0x6e, 0xd8, 0x65, 0x73, 0xe7, 0x8c, 0x49, 0x5b, 0xae, 0xfe, 0x46,
+	0x03, 0xe8, 0x52, 0xe1, 0x9b, 0xb9, 0x91, 0x48, 0x57, 0xd8, 0xf6, 0x80, 0x8a, 0x63, 0xeb, 0x19,
+	0xfd, 0xe3, 0xc0, 0x9b, 0x0b, 0xaf, 0xc8, 0x85, 0x34, 0x77, 0xa0, 0x85, 0xa3, 0x88, 0x13, 0x61,
+	0x06, 0xd3, 0xdd, 0xbd, 0xb1, 0xf0, 0x74, 0x0c, 0xd4, 0x2b, 0x39, 0xe8, 0x16, 0x2c, 0xd3, 0x48,
+	0xe8, 0x97, 0xa3, 0xbb, 0xdb, 0x5f, 0x44, 0x3d, 0x88, 0x3c, 0x05, 0x45, 0x0f, 0x60, 0x3d, 0x21,
+	0x31, 0x4e, 0xfc, 0x9c, 0x70, 0xc1, 0x32, 0xb5, 0x14, 0x8a, 0xfb, 0xce, 0x22, 0xee, 0x03, 0x45,
+	0x98, 0x68, 0xbc, 0xb7, 0x96, 0xcc, 0x0d, 0x31, 0x7a, 0x04, 0xdd, 0x5a, 0x10, 0x7d, 0x00, 0x2b,
+	0x19, 0x4e, 0x89, 0xd0, 0x1b, 0xd0, 0xdd, 0x1d, 0x2e, 0x12, 0xfd, 0x1c, 0xa7, 0xc4, 0x33, 0x70,
+	0xf4, 0x1a, 0xb4, 0x43, 0xc9, 0x67, 0x3e, 0x27, 0xb1, 0x1d, 0x78, 0x4b, 0xd9, 0x1e, 0x89, 0xf7,
+	0xda, 0xdf, 0x3d, 0x1d, 0x34, 0xfe, 0x7a, 0x3a, 0x68, 0x8c, 0x3e, 0x84, 0xa6, 0xe2, 0xa8, 0x93,
+	0x51, 0x2c, 0x3b, 0x44, 0xfd, 0x5d, 0xbb, 0x25, 0x4e, 0xb9, 0x79, 0x35, 0xe6, 0x0f, 0x0e, 0xb4,
+	0xec, 0xe8, 0xd0, 0xeb, 0xd0, 0x51, 0xc3, 0xf3, 0xed, 0xa2, 0x2a, 0x78, 0x5b, 0x39, 0x8e, 0xec,
+	0xab, 0x2b, 0xa7, 0x27, 0x98, 0x97, 0x42, 0xd6, 0x42, 0x3d, 0x68, 0xe5, 0x9c, 0xa4, 0x54, 0xd8,
+	0xb5, 0xf4, 0x4a, 0x13, 0x6d, 0x41, 0x3b, 0x67, 0x42, 0x86, 0x2c, 0xb2, 0x0b, 0xe8, 0x55, 0xb6,
+	0x8a, 0x25, 0x2c, 0xc4, 0x09, 0x95, 0x33, 0xfd, 0x4c, 0x77, 0xbc, 0xca, 0x56, 0x8a, 0x21, 0x2b,
+	0x32, 0xc9, 0x67, 0xfa, 0xd9, 0x55, 0x0d, 0x1b, 0xb3, 0x56, 0xf6, 0x36, 0x2c, 0x1d, 0x44, 0x0b,
+	0x1e, 0x84, 0xaa, 0xd5, 0xd1, 0xf7, 0x0e, 0xac, 0xe8, 0x07, 0xa8, 0x76, 0x05, 0xab, 0xa8, 0xce,
+	0xc5, 0x09, 0x96, 0x24, 0xaa, 0x86, 0x6b, 0x4c, 0x7d, 0x39, 0x15, 0xcd, 0xcf, 0x0b, 0x9e, 0xb3,
+	0xaa, 0xbb, 0x35, 0xed, 0x9c, 0x18, 0x1f, 0x72, 0xe1, 0xff, 0xe6, 0x00, 0x43, 0xf3, 0x5b, 0x91,
+	0x12, 0x39, 0x65, 0x91, 0xed, 0x16, 0xd5, 0x43, 0x87, 0x3a, 0x82, 0xde, 0x80, 0x8e, 0xa0, 0x71,
+	0x86, 0x65, 0xc1, 0x89, 0x6d, 0x7c, 0xee, 0x18, 0xfd, 0xea, 0x00, 0x1c, 0x87, 0x87, 0x44, 0xe2,
+	0x08, 0x4b, 0xac, 0xc0, 0xa7, 0x84, 0x0b, 0xca, 0xb2, 0x83, 0xb2, 0xcb, 0xb9, 0x03, 0xed, 0x3d,
+	0x5f, 0xfa, 0xab, 0xfc, 0xd0, 0x55, 0xcd, 0xed, 0x41, 0xab, 0xc8, 0x23, 0xcd, 0x5d, 0x7e, 0x55,
+	0xae, 0x25, 0xa0, 0x21, 0x74, 0x23, 0x82, 0x43, 0x49, 0x4f, 0x35, 0xbf, 0xa9, 0x6f, 0x7a, 0xdd,
+	0x55, 0x1d, 0x93, 0xb3, 0xff, 0xc5, 0x2f, 0x67, 0x7d, 0xe7, 0xd9, 0x59, 0xdf, 0xf9, 0xf3, 0xac,
+	0xef, 0x3c, 0x39, 0xef, 0x37, 0x9e, 0x9d, 0xf7, 0x1b, 0xbf, 0x9d, 0xf7, 0x1b, 0x5f, 0xdf, 0x8e,
+	0xa9, 0x9c, 0x16, 0xc1, 0x38, 0x64, 0xa9, 0x7b, 0x8f, 0x89, 0xf4, 0x2b, 0x2c, 0x52, 0x57, 0x5f,
+	0x09, 0xf7, 0xf1, 0x0b, 0xfe, 0xf5, 0xa8, 0x03, 0x13, 0xc1, 0xaa, 0xae, 0xf0, 0xfd, 0x7f, 0x03,
+	0x00, 0x00, 0xff, 0xff, 0x26, 0x30, 0xa0, 0xdb, 0x27, 0x09, 0x00, 0x00,
 }
 
+func (this *VcMetadata) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*VcMetadata)
+	if !ok {
+		that2, ok := that.(VcMetadata)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.VersionId != that1.VersionId {
+		return false
+	}
+	if that1.Created == nil {
+		if this.Created != nil {
+			return false
+		}
+	} else if !this.Created.Equal(*that1.Created) {
+		return false
+	}
+	if that1.Updated == nil {
+		if this.Updated != nil {
+			return false
+		}
+	} else if !this.Updated.Equal(*that1.Updated) {
+		return false
+	}
+	if this.Deactivated != that1.Deactivated {
+		return false
+	}
+	return true
+}
 func (m *VerifiableCredential) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -670,7 +954,7 @@ func (m *VerifiableCredential) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i = encodeVarintVerifiableCredential(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x52
+		dAtA[i] = 0x4a
 	}
 	if m.CredentialSubject != nil {
 		{
@@ -766,6 +1050,161 @@ func (m *VerifiableCredential_UserCred) MarshalToSizedBuffer(dAtA []byte) (int, 
 		i--
 		dAtA[i] = 0x3a
 	}
+	return len(dAtA) - i, nil
+}
+func (m *VerifiableCredential_AnonCredSchema) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VerifiableCredential_AnonCredSchema) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.AnonCredSchema != nil {
+		{
+			size, err := m.AnonCredSchema.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintVerifiableCredential(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
+	}
+	return len(dAtA) - i, nil
+}
+func (m *AnonymousCredentialSchemaSubject) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AnonymousCredentialSchemaSubject) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AnonymousCredentialSchemaSubject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.AccumParams != nil {
+		{
+			size, err := m.AccumParams.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintVerifiableCredential(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.BbsPlusParams) > 0 {
+		i -= len(m.BbsPlusParams)
+		copy(dAtA[i:], m.BbsPlusParams)
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.BbsPlusParams)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Type) > 0 {
+		for iNdEx := len(m.Type) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Type[iNdEx])
+			copy(dAtA[i:], m.Type[iNdEx])
+			i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.Type[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AccumulatorParameters) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *AccumulatorParameters) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AccumulatorParameters) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.State != nil {
+		{
+			size := m.State.Size()
+			i -= size
+			if _, err := m.State.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if len(m.PublicParams) > 0 {
+		i -= len(m.PublicParams)
+		copy(dAtA[i:], m.PublicParams)
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.PublicParams)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Type) > 0 {
+		for iNdEx := len(m.Type) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Type[iNdEx])
+			copy(dAtA[i:], m.Type[iNdEx])
+			i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.Type[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *AccumulatorParameters_MembershipState) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AccumulatorParameters_MembershipState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.MembershipState)
+	copy(dAtA[i:], m.MembershipState)
+	i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.MembershipState)))
+	i--
+	dAtA[i] = 0x1a
+	return len(dAtA) - i, nil
+}
+func (m *AccumulatorParameters_NonMembershipState) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AccumulatorParameters_NonMembershipState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.NonMembershipState)
+	copy(dAtA[i:], m.NonMembershipState)
+	i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.NonMembershipState)))
+	i--
+	dAtA[i] = 0x22
 	return len(dAtA) - i, nil
 }
 func (m *UserCredentialSubject) Marshal() (dAtA []byte, err error) {
@@ -1126,6 +1565,66 @@ func (m *Proof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *VcMetadata) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VcMetadata) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VcMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Deactivated {
+		i--
+		if m.Deactivated {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Updated != nil {
+		n8, err8 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Updated, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Updated):])
+		if err8 != nil {
+			return 0, err8
+		}
+		i -= n8
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(n8))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Created != nil {
+		n9, err9 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Created, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Created):])
+		if err9 != nil {
+			return 0, err9
+		}
+		i -= n9
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(n9))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.VersionId) > 0 {
+		i -= len(m.VersionId)
+		copy(dAtA[i:], m.VersionId)
+		i = encodeVarintVerifiableCredential(dAtA, i, uint64(len(m.VersionId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintVerifiableCredential(dAtA []byte, offset int, v uint64) int {
 	offset -= sovVerifiableCredential(v)
 	base := offset
@@ -1199,6 +1698,87 @@ func (m *VerifiableCredential_UserCred) Size() (n int) {
 		l = m.UserCred.Size()
 		n += 1 + l + sovVerifiableCredential(uint64(l))
 	}
+	return n
+}
+func (m *VerifiableCredential_AnonCredSchema) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.AnonCredSchema != nil {
+		l = m.AnonCredSchema.Size()
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	return n
+}
+func (m *AnonymousCredentialSchemaSubject) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if len(m.Type) > 0 {
+		for _, s := range m.Type {
+			l = len(s)
+			n += 1 + l + sovVerifiableCredential(uint64(l))
+		}
+	}
+	l = len(m.BbsPlusParams)
+	if l > 0 {
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if m.AccumParams != nil {
+		l = m.AccumParams.Size()
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	return n
+}
+
+func (m *AccumulatorParameters) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Type) > 0 {
+		for _, s := range m.Type {
+			l = len(s)
+			n += 1 + l + sovVerifiableCredential(uint64(l))
+		}
+	}
+	l = len(m.PublicParams)
+	if l > 0 {
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if m.State != nil {
+		n += m.State.Size()
+	}
+	return n
+}
+
+func (m *AccumulatorParameters_MembershipState) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MembershipState)
+	n += 1 + l + sovVerifiableCredential(uint64(l))
+	return n
+}
+func (m *AccumulatorParameters_NonMembershipState) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.NonMembershipState)
+	n += 1 + l + sovVerifiableCredential(uint64(l))
 	return n
 }
 func (m *UserCredentialSubject) Size() (n int) {
@@ -1361,6 +1941,30 @@ func (m *Proof) Size() (n int) {
 	l = len(m.Signature)
 	if l > 0 {
 		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	return n
+}
+
+func (m *VcMetadata) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.VersionId)
+	if l > 0 {
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if m.Created != nil {
+		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.Created)
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if m.Updated != nil {
+		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.Updated)
+		n += 1 + l + sovVerifiableCredential(uint64(l))
+	}
+	if m.Deactivated {
+		n += 2
 	}
 	return n
 }
@@ -1634,7 +2238,42 @@ func (m *VerifiableCredential) Unmarshal(dAtA []byte) error {
 			}
 			m.CredentialSubject = &VerifiableCredential_UserCred{v}
 			iNdEx = postIndex
-		case 10:
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AnonCredSchema", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &AnonymousCredentialSchemaSubject{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.CredentialSubject = &VerifiableCredential_AnonCredSchema{v}
+			iNdEx = postIndex
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Proof", wireType)
 			}
@@ -1669,6 +2308,366 @@ func (m *VerifiableCredential) Unmarshal(dAtA []byte) error {
 			if err := m.Proof.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipVerifiableCredential(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AnonymousCredentialSchemaSubject) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowVerifiableCredential
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AnonymousCredentialSchemaSubject: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AnonymousCredentialSchemaSubject: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = append(m.Type, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BbsPlusParams", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BbsPlusParams = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AccumParams", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.AccumParams == nil {
+				m.AccumParams = &AccumulatorParameters{}
+			}
+			if err := m.AccumParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipVerifiableCredential(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AccumulatorParameters) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowVerifiableCredential
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AccumulatorParameters: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AccumulatorParameters: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = append(m.Type, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PublicParams", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PublicParams = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MembershipState", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = &AccumulatorParameters_MembershipState{string(dAtA[iNdEx:postIndex])}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NonMembershipState", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = &AccumulatorParameters_NonMembershipState{string(dAtA[iNdEx:postIndex])}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2786,6 +3785,180 @@ func (m *Proof) Unmarshal(dAtA []byte) error {
 			}
 			m.Signature = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipVerifiableCredential(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VcMetadata) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowVerifiableCredential
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VcMetadata: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VcMetadata: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VersionId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VersionId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Created", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Created == nil {
+				m.Created = new(time.Time)
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.Created, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Updated", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthVerifiableCredential
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Updated == nil {
+				m.Updated = new(time.Time)
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.Updated, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Deactivated", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowVerifiableCredential
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Deactivated = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipVerifiableCredential(dAtA[iNdEx:])

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package allinbits.cosmoscash.verifiablecredential;
+package wasmd.verifiablecredential;
 
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
@@ -13,11 +13,11 @@ option go_package = "github.com/CosmWasm/wasmd/x/verifiable-credential/types";
 service Query {
   // Identifers queries all validators that match the given status.
   rpc VerifiableCredentials(QueryVerifiableCredentialsRequest) returns (QueryVerifiableCredentialsResponse) {
-    option (google.api.http).get = "/allinbits/verifiablecredentials/verifiablecredentials";
+    option (google.api.http).get = "/wasmd/verifiablecredentials/verifiablecredentials";
   }
   // VerifiableCredential queries validator info for given validator address.
   rpc VerifiableCredential(QueryVerifiableCredentialRequest) returns (QueryVerifiableCredentialResponse) {
-    option (google.api.http).get = "/allinbits/verifiablecredentials/verifiablecredentials/{verifiable_credential_id}";
+    option (google.api.http).get = "/wasmd/verifiablecredentials/verifiablecredentials/{verifiable_credential_id}";
   }
 }
 
@@ -49,6 +49,7 @@ message QueryVerifiableCredentialRequest {
 message QueryVerifiableCredentialResponse {
   // verifiable_credential defines the the credential info.
   VerifiableCredential verifiable_credential = 1 [(gogoproto.nullable) = false];
+  VcMetadata vcMetadata = 2  [(gogoproto.nullable) = false];
 }
 
 // QueryVerifiableCredentialResponse is response type for the Query/VerifiableCredential RPC method

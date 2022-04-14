@@ -3,11 +3,10 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	didtypes "github.com/CosmWasm/wasmd/x/did/types"
 	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {
@@ -22,10 +21,23 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-// IssueRegistrationCredential activates a regulator
+// IssueRegistrationCredential issuers a registration credential for a business
 func (k msgServer) IssueRegistrationCredential(goCtx context.Context, msg *types.MsgIssueRegistrationCredential) (*types.MsgIssueRegistrationCredentialResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.Logger(ctx).Info("issue registration request", "address", msg.Owner, "credential", msg.Credential)
+
+	_, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.Credential.Id))
+	if found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "vc %s already exist", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	if _, ok := msg.Credential.GetCredentialSubject().(*types.VerifiableCredential_RegistrationCred); !ok {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "not a registration credential type")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
 
 	// verify issuer is the did owner
 	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
@@ -38,6 +50,10 @@ func (k msgServer) IssueRegistrationCredential(goCtx context.Context, msg *types
 		return nil, err
 	}
 
+	// now create and persist the metadata
+	vcM := types.NewVcMetadata(ctx.TxBytes(), ctx.BlockTime())
+	k.Keeper.SetVcMetadata(ctx, []byte(msg.Credential.Id), vcM)
+
 	k.Logger(ctx).Info("issue registration request successful", "did", msg.Credential.Issuer, "address", msg.Owner)
 
 	ctx.EventManager().EmitEvent(
@@ -47,13 +63,26 @@ func (k msgServer) IssueRegistrationCredential(goCtx context.Context, msg *types
 	return &types.MsgIssueRegistrationCredentialResponse{}, nil
 }
 
-// IssueUserCredential activates a regulator
+// IssueUserCredential issues user credential
 func (k msgServer) IssueUserCredential(
 	goCtx context.Context,
 	msg *types.MsgIssueUserCredential,
 ) (*types.MsgIssueUserCredentialResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	k.Logger(ctx).Info("issue user credential request", "credential", msg.Credential, "address", msg.Owner)
+
+	_, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.Credential.Id))
+	if found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "vc %s already exist", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	if _, ok := msg.Credential.GetCredentialSubject().(*types.VerifiableCredential_UserCred); !ok {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "not a user credential type")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
 
 	// check that the issuer is a holder of did
 	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
@@ -67,6 +96,10 @@ func (k msgServer) IssueUserCredential(
 		return nil, err
 	}
 
+	// now create and persist the metadata
+	vcM := types.NewVcMetadata(ctx.TxBytes(), ctx.BlockTime())
+	k.Keeper.SetVcMetadata(ctx, []byte(msg.Credential.Id), vcM)
+
 	k.Logger(ctx).Info("issue user credential request successful", "credentialID", msg.Credential.Id)
 
 	ctx.EventManager().EmitEvent(
@@ -76,14 +109,139 @@ func (k msgServer) IssueUserCredential(
 	return &types.MsgIssueUserCredentialResponse{}, nil
 }
 
+// IssueAnonymousCredentialSchema issues an anonymous credential schema
+func (k msgServer) IssueAnonymousCredentialSchema(
+	goCtx context.Context,
+	msg *types.MsgIssueAnonymousCredentialSchema,
+) (*types.MsgIssueAnonymousCredentialSchemaResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.Logger(ctx).Info("issue anonymous credential schema request", "credential", msg.Credential, "address", msg.Owner)
+
+	_, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.Credential.Id))
+	if found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "vc %s already exist", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	if _, ok := msg.Credential.GetCredentialSubject().(*types.VerifiableCredential_AnonCredSchema); !ok {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "not an anonymous credential schema type")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// check that the issuer is a holder of did
+	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
+		return nil, err
+	}
+
+	// store the credentials
+	if vcErr := k.Keeper.SetVerifiableCredential(ctx, []byte(msg.Credential.Id), *msg.Credential); vcErr != nil {
+		err := sdkerrors.Wrapf(vcErr, "credential proof cannot be verified")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// now create and persist the metadata
+	vcM := types.NewVcMetadata(ctx.TxBytes(), ctx.BlockTime())
+	k.Keeper.SetVcMetadata(ctx, []byte(msg.Credential.Id), vcM)
+
+	k.Logger(ctx).Info("issue anonymous credential schema request successful", "credentialID", msg.Credential.Id)
+
+	ctx.EventManager().EmitEvent(
+		types.NewCredentialCreatedEvent(msg.Owner, msg.Credential.Id),
+	)
+
+	return &types.MsgIssueAnonymousCredentialSchemaResponse{}, nil
+}
+
+// UpdateAnonymousCredentialSchema update an existing anonymous credential schema
+func (k msgServer) UpdateAnonymousCredentialSchema(
+	goCtx context.Context,
+	msg *types.MsgUpdateAnonymousCredentialSchema,
+) (*types.MsgUpdateAnonymousCredentialSchemaResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.Logger(ctx).Info("update anonymous credential schema request", "credential id", msg.Credential.Id, "address", msg.Owner)
+
+	vc, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.Credential.Id))
+	if !found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrNotFound, "vc %s not found", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	_, found = k.Keeper.GetVcMetadata(ctx, []byte(msg.Credential.Id))
+	if !found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrNotFound, "vc %s meta data not found", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	/*
+		if vcMeta.Deactivated {
+			err := sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "vc %s already deactived", msg.Credential.Id)
+			k.Logger(ctx).Error(err.Error())
+			return nil, err
+		}
+	*/
+
+	_, ok := vc.GetCredentialSubject().(*types.VerifiableCredential_AnonCredSchema)
+	if !ok {
+		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "not an anonymous credential schema type")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// check that the issuer is a holder of did
+	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); didErr != nil {
+		return nil, didErr
+	}
+
+	if oldDidErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); oldDidErr != nil {
+		return nil, oldDidErr
+	}
+
+	// store the credentials
+	if vcErr := k.Keeper.SetVerifiableCredential(ctx, []byte(msg.Credential.Id), *msg.Credential); vcErr != nil {
+		err := sdkerrors.Wrapf(vcErr, "credential proof cannot be verified")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// update the Metadata
+	if metaErr := updateVcMetadata(&k.Keeper, ctx, msg.Credential.Id, false); metaErr != nil {
+		err := sdkerrors.Wrapf(metaErr, "vc %s", msg.Credential.Id)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	k.Logger(ctx).Info("update anonymous credential schema request successful", "credentialID", msg.Credential.Id)
+
+	return &types.MsgUpdateAnonymousCredentialSchemaResponse{}, nil
+}
+
 // RevokeCredential revoke a credential
 func (k msgServer) RevokeCredential(goCtx context.Context, msg *types.MsgRevokeCredential) (*types.MsgRevokeCredentialResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	k.Logger(ctx).Info("revoke credential request", "credential", msg.CredentialId, "address", msg.Owner)
 
-	if vcErr := k.DeleteVerifiableCredentialFromStore(ctx, []byte(msg.CredentialId), msg.Owner); vcErr != nil {
-		err := sdkerrors.Wrapf(vcErr, "credential proof cannot be verified")
+	vc, found := k.GetVerifiableCredential(ctx, []byte(msg.CredentialId))
+	if !found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrNotFound, "vc %s not found", msg.CredentialId)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// check that the issuer is a holder of did
+	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); didErr != nil {
+		return nil, didErr
+	}
+
+	// for now revoking credential is done by marking it as deactived in meta data
+	// update the Metadata
+	if metaErr := updateVcMetadata(&k.Keeper, ctx, msg.CredentialId, true); metaErr != nil {
+		err := sdkerrors.Wrapf(metaErr, "vc %s", msg.CredentialId)
 		k.Logger(ctx).Error(err.Error())
 		return nil, err
 	}
@@ -95,4 +253,16 @@ func (k msgServer) RevokeCredential(goCtx context.Context, msg *types.MsgRevokeC
 	)
 
 	return &types.MsgRevokeCredentialResponse{}, nil
+}
+
+// helper function to update the vc metadata
+func updateVcMetadata(keeper *Keeper, ctx sdk.Context, vcId string, deactived bool) (err error) {
+	vcMeta, found := keeper.GetVcMetadata(ctx, []byte(vcId))
+	if found {
+		types.UpdateVcMetadata(&vcMeta, ctx.TxBytes(), ctx.BlockTime(), deactived)
+		keeper.SetVcMetadata(ctx, []byte(vcId), vcMeta)
+	} else {
+		err = sdkerrors.Wrapf(sdkerrors.ErrNotFound, "(warning) vc metadata not found")
+	}
+	return
 }

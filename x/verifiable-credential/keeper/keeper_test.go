@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
@@ -64,7 +65,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	ms.MountStoreWithDB(memKeyDidDocument, sdk.StoreTypeIAVL, db)
 	_ = ms.LoadLatestVersion()
 
-	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "test"}, true, server.ZeroLogWrapper{log.Logger})
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: "test"}, true, server.ZeroLogWrapper{log.Logger}).WithBlockTime(time.Now().UTC())
 
 	interfaceRegistry := ct.NewInterfaceRegistry()
 	authtypes.RegisterInterfaces(interfaceRegistry)

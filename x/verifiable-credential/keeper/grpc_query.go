@@ -48,5 +48,10 @@ func (q Keeper) VerifiableCredential(
 		return nil, status.Errorf(codes.NotFound, "vc %s not found", req.VerifiableCredentialId)
 	}
 
-	return &types.QueryVerifiableCredentialResponse{VerifiableCredential: vc}, nil
+	vcMeta, found := q.GetVcMetadata(ctx, []byte(req.VerifiableCredentialId))
+	if !found {
+		return nil, status.Errorf(codes.NotFound, "vc %s meta data not found", req.VerifiableCredentialId)
+	}
+
+	return &types.QueryVerifiableCredentialResponse{VerifiableCredential: vc, VcMetadata: vcMeta}, nil
 }

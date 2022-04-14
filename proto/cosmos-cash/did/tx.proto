@@ -1,5 +1,5 @@
 syntax = "proto3";
-package allinbits.cosmoscash.did;
+package wasmd.did;
 
 import "gogoproto/gogo.proto";
 import "cosmos-cash/did/did.proto";

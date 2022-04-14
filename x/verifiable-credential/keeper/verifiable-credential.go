@@ -23,46 +23,6 @@ func (q Keeper) GetVerifiableCredential(ctx sdk.Context, key []byte) (types.Veri
 	return val.(types.VerifiableCredential), found
 }
 
-// DeleteVerifiableCredentialFromStore deletes a verifiable credential from the store,
-// it performs the necessary proof validation before executing the deletion
-func (q Keeper) DeleteVerifiableCredentialFromStore(ctx sdk.Context, credentialID []byte, issuerAddress string) error {
-	vc, found := q.GetVerifiableCredential(ctx, credentialID)
-	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrVerifiableCredentialNotFound,
-			"error deleting credential; credential not found",
-		)
-	}
-	// verify that is the same of the vc
-	issuerAccount, err := sdk.AccAddressFromBech32(issuerAddress)
-	if err != nil {
-		return sdkerrors.Wrapf(
-			types.ErrMessageSigner,
-			"failed to convert the issuer address to account %v: %v", issuerAddress,
-			err,
-		)
-	}
-	// get the public key from the account
-	pk, err := q.accountKeeper.GetPubKey(ctx, issuerAccount)
-	if err != nil || pk == nil {
-		return sdkerrors.Wrapf(
-			types.ErrMessageSigner,
-			"issuer public key not found %v",
-			err,
-		)
-	}
-	//
-	if isValid := vc.Validate(pk); !isValid {
-		return sdkerrors.Wrapf(
-			types.ErrMessageSigner,
-			"verification error %v",
-			err,
-		)
-	}
-	q.Delete(ctx, credentialID, types.VerifiableCredentialKey)
-	return nil
-}
-
 func (q Keeper) UnmarshalVerifiableCredential(value []byte) (interface{}, bool) {
 	vc := types.VerifiableCredential{}
 
@@ -131,6 +91,32 @@ func (q Keeper) GetAllVerifiableCredentials(ctx sdk.Context) []types.VerifiableC
 		types.VerifiableCredentialKey,
 		func(vc types.VerifiableCredential) bool { return true },
 	)
+}
+
+func (q Keeper) SetVcMetadata(ctx sdk.Context, key []byte, meta types.VcMetadata) {
+	q.Set(ctx, key, types.VcMetadataKey, meta, q.MarshalVcMetadata)
+}
+
+func (q Keeper) GetVcMetadata(ctx sdk.Context, key []byte) (types.VcMetadata, bool) {
+	val, found := q.Get(ctx, key, types.VcMetadataKey, q.UnmarshalVcMetadata)
+	return val.(types.VcMetadata), found
+}
+
+func (q Keeper) MarshalVcMetadata(value interface{}) []byte {
+	meta := value.(types.VcMetadata)
+	bytes, _ := q.cdc.Marshal(&meta)
+
+	return bytes
+}
+
+func (q Keeper) UnmarshalVcMetadata(value []byte) (interface{}, bool) {
+	data := types.VcMetadata{}
+	err := q.cdc.Unmarshal(value, &data)
+	if err != nil {
+		return types.VcMetadata{}, false
+	}
+
+	return data, types.IsValidVcMetadata(&data)
 }
 
 // ValidateProof validate the proof of a verifiable credential

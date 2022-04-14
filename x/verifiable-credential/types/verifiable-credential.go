@@ -1,8 +1,13 @@
 package types
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"strings"
 	"time"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -13,9 +18,10 @@ import (
 
 // Defines the accepted credential types
 const (
-	IdentityCredential     = "IdentityCredential"
-	UserCredential         = "UserCredential"
-	RegistrationCredential = "RegistrationCredential"
+	IdentityCredential        = "IdentityCredential"
+	UserCredential            = "UserCredential"
+	RegistrationCredential    = "RegistrationCredential"
+	AnonymousCredentialSchema = "AnonymousCredentialSchema"
 )
 
 // IsValidCredentialType tells if a credential type is valid (accepted)
@@ -23,10 +29,29 @@ func IsValidCredentialType(credential string) bool {
 	switch credential {
 	case IdentityCredential,
 		UserCredential,
-		RegistrationCredential:
+		RegistrationCredential,
+		AnonymousCredentialSchema:
 		return true
 	default:
 		return false
+	}
+}
+
+// NewAnonymousCredentialSchema constructs a new VerifiableCredential instance
+func NewAnonymousCredentialSchema(
+	id string,
+	issuer string,
+	issuanceDate time.Time,
+	credentialSubject VerifiableCredential_AnonCredSchema,
+) VerifiableCredential {
+	return VerifiableCredential{
+		Context:           []string{"https://www.w3.org/TR/vc-data-model/"},
+		Id:                id,
+		Type:              []string{"VerifiableCredential", AnonymousCredentialSchema},
+		Issuer:            issuer,
+		IssuanceDate:      &issuanceDate,
+		CredentialSubject: &credentialSubject,
+		Proof:             nil,
 	}
 }
 
@@ -63,6 +88,23 @@ func NewRegistrationVerifiableCredential(
 		IssuanceDate:      &issuanceDate,
 		CredentialSubject: &credentialSubject,
 		Proof:             nil,
+	}
+}
+
+// NewUserCredentialSubject create a new credential subject
+func NewAnonymousCredentialSchemaSubject(
+	subId string,
+	subType []string,
+	bbsPlusParams string,
+	accumParams AccumulatorParameters,
+) VerifiableCredential_AnonCredSchema {
+	return VerifiableCredential_AnonCredSchema{
+		&AnonymousCredentialSchemaSubject{
+			Id:            subId,
+			Type:          subType,
+			BbsPlusParams: bbsPlusParams,
+			AccumParams:   &accumParams,
+		},
 	}
 }
 
@@ -209,6 +251,8 @@ func (vc VerifiableCredential) GetSubjectDID() didtypes.DID {
 		return didtypes.DID(subj.RegistrationCred.Id)
 	case *VerifiableCredential_UserCred:
 		return didtypes.DID(subj.UserCred.Id)
+	case *VerifiableCredential_AnonCredSchema:
+		return didtypes.DID(subj.AnonCredSchema.Id)
 	default:
 		// TODO, not great
 		return didtypes.DID("")
@@ -224,4 +268,74 @@ func (vc VerifiableCredential) GetIssuerDID() didtypes.DID {
 func (vc VerifiableCredential) GetBytes() []byte {
 	dAtA, _ := vc.Marshal()
 	return dAtA
+}
+
+// SetMembershipState sets a new membership state
+func (vc VerifiableCredential) SetMembershipState(
+	state AccumulatorParameters_MembershipState,
+) (VerifiableCredential, error) {
+	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
+	if !ok {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
+	}
+	_, ok = sub.AnonCredSchema.AccumParams.State.(*AccumulatorParameters_MembershipState)
+	if !ok {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an accumulator membership state")
+	}
+	sub.AnonCredSchema.AccumParams.State = &state
+	return vc, nil
+}
+
+// SetMembershipState sets a new membership state
+func (vc VerifiableCredential) SetNonMembershipState(
+	state AccumulatorParameters_NonMembershipState,
+) (VerifiableCredential, error) {
+	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
+	if !ok {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
+	}
+	_, ok = sub.AnonCredSchema.AccumParams.State.(*AccumulatorParameters_NonMembershipState)
+	if !ok {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an accumulator non-membership state")
+	}
+	sub.AnonCredSchema.AccumParams.State = &state
+	return vc, nil
+}
+
+// NewVcMetadata returns a VcMetadata struct that has equals created and updated date,
+// and with deactivated field set to false
+func NewVcMetadata(versionData []byte, created time.Time) VcMetadata {
+	m := VcMetadata{
+		Created: &created,
+	}
+	UpdateVcMetadata(&m, versionData, created, false)
+	return m
+}
+
+// UpdateVcMetadata updates a VC metadata time and version id
+func UpdateVcMetadata(meta *VcMetadata, versionData []byte, updated time.Time, deactivated bool) {
+	txH := sha256.Sum256(versionData)
+	meta.VersionId = hex.EncodeToString(txH[:])
+	meta.Updated = &updated
+	meta.Deactivated = deactivated
+}
+
+// IsEmpty tells if the trimmed input is empty
+func IsEmpty(input string) bool {
+	return strings.TrimSpace(input) == ""
+}
+
+// IsValidVcMetadata tells if a vc metadata is valid,
+// that is if it has a non empty versionId and a non-zero create date
+func IsValidVcMetadata(vcMeta *VcMetadata) bool {
+	if vcMeta == nil {
+		return false
+	}
+	if IsEmpty(vcMeta.VersionId) {
+		return false
+	}
+	if vcMeta.Created == nil || vcMeta.Created.IsZero() {
+		return false
+	}
+	return true
 }

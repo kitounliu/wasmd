@@ -118,7 +118,159 @@ func (suite *KeeperTestSuite) TestMsgSeverIssueUserCredential() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgSeverDeleteVerifableCredential() {
+func (suite *KeeperTestSuite) TestMsgSeverIssueAnonymousCredentialSchema() {
+	server := NewMsgServerImpl(suite.keeper)
+	var req types.MsgIssueAnonymousCredentialSchema
+
+	testCases := []struct {
+		msg       string
+		malleate  func()
+		expectErr error
+	}{
+		{
+			msg:       "PASS: issuer can issue anonymous credential schema",
+			expectErr: nil,
+			malleate: func() {
+				var vc types.VerifiableCredential
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				issuerAddress := suite.GetIssuerAddress()
+
+				vc = types.NewAnonymousCredentialSchema(
+					"anonymous-credential-schema-2022",
+					issuerDid.String(),
+					time.Now(),
+					types.NewAnonymousCredentialSchemaSubject(
+						issuerDid.String(),
+						[]string{"BBS+", "Accumulator"},
+						"placeholder for bbs+ public parameters",
+						types.AccumulatorParameters{
+							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
+							PublicParams: "placeholder for accumulator public parameters",
+							State: &types.AccumulatorParameters_MembershipState{
+								MembershipState: "placeholder for membership state",
+							},
+						},
+					),
+				)
+
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				req = types.MsgIssueAnonymousCredentialSchema{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc.malleate()
+			vcResp, err := server.IssueAnonymousCredentialSchema(sdk.WrapSDKContext(suite.ctx), &req)
+			if tc.expectErr == nil {
+				suite.NoError(err)
+				suite.NotNil(vcResp)
+			} else {
+				suite.Require().Error(err)
+				suite.Assert().Contains(err.Error(), tc.expectErr.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
+	server := NewMsgServerImpl(suite.keeper)
+	// create an anonymous credential scheme first
+
+	// update the anonymous credential schema
+	var req types.MsgUpdateAnonymousCredentialSchema
+
+	testCases := []struct {
+		msg       string
+		malleate  func()
+		expectErr error
+	}{
+		{
+			msg:       "PASS: issuer can update anonymous credential schema",
+			expectErr: nil,
+			malleate: func() {
+				// create a vc first
+				var vc types.VerifiableCredential
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				issuerAddress := suite.GetIssuerAddress()
+
+				vc = types.NewAnonymousCredentialSchema(
+					"anonymous-credential-schema-2023",
+					issuerDid.String(),
+					time.Now(),
+					types.NewAnonymousCredentialSchemaSubject(
+						issuerDid.String(),
+						[]string{"BBS+", "Accumulator"},
+						"placeholder for bbs+ public parameters",
+						types.AccumulatorParameters{
+							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
+							PublicParams: "placeholder for accumulator public parameters",
+							State: &types.AccumulatorParameters_MembershipState{
+								MembershipState: "placeholder for membership state",
+							},
+						},
+					),
+				)
+
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				vcReq := types.MsgIssueAnonymousCredentialSchema{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+				vcResp, err := server.IssueAnonymousCredentialSchema(sdk.WrapSDKContext(suite.ctx), &vcReq)
+				suite.NoError(err)
+				suite.NotNil(vcResp)
+
+				// update the accumulator state
+				// clean the proof
+				vc.Proof = nil
+				vc, err = vc.SetMembershipState(types.AccumulatorParameters_MembershipState{
+					MembershipState: "placeholder for new membership state after adding a new member",
+				})
+				suite.NoError(err)
+				_, err = vc.SetNonMembershipState(types.AccumulatorParameters_NonMembershipState{
+					NonMembershipState: "non membership state for fail",
+				})
+				suite.Error(err)
+				// update proof
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				req = types.MsgUpdateAnonymousCredentialSchema{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc.malleate()
+			vcResp, err := server.UpdateAnonymousCredentialSchema(sdk.WrapSDKContext(suite.ctx), &req)
+			if tc.expectErr == nil {
+				suite.NoError(err)
+				suite.NotNil(vcResp)
+			} else {
+				suite.Require().Error(err)
+				suite.Assert().Contains(err.Error(), tc.expectErr.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgSeveRevokeVerifableCredential() {
 	server := NewMsgServerImpl(suite.keeper)
 	var req types.MsgRevokeCredential
 

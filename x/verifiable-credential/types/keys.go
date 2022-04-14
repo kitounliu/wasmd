@@ -2,7 +2,9 @@ package types
 
 var (
 	// VerifiableCredentialKey prefix for each key to a DidDocument
-	VerifiableCredentialKey = []byte{0x62}
+	VerifiableCredentialKey = []byte{0x63}
+	// VcMetadataKey prefix for each key of a VcMetadata
+	VcMetadataKey = []byte{0x64}
 )
 
 const (
