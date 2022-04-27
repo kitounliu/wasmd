@@ -2,7 +2,14 @@ package cli_test
 
 import (
 	"fmt"
+
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 
@@ -14,6 +21,9 @@ import (
 	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
+
+	didcli "github.com/CosmWasm/wasmd/x/did/client/cli"
+	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/client/testutil"
 
 	"github.com/CosmWasm/wasmd/app"
 	"github.com/CosmWasm/wasmd/app/params"
@@ -58,13 +68,72 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	cfg := network.DefaultConfig()
 	types.RegisterInterfaces(cfg.InterfaceRegistry)
 	cfg.AppConstructor = NewAppConstructor(app.MakeEncodingConfig())
-	cfg.NumValidators = 1
+	cfg.NumValidators = 2
 
 	s.cfg = cfg
 	s.network = network.New(s.T(), cfg)
 
 	_, err := s.network.WaitForHeight(1)
 	s.Require().NoError(err)
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	// create new accounts
+	issuer, _, err := val.ClientCtx.Keyring.NewMnemonic("issuer", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
+	s.Require().NoError(err)
+	_, err = banktestutil.MsgSendExec(
+		val.ClientCtx,
+		val.Address,
+		issuer.GetAddress(),
+		sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(2000))), fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+	)
+	s.Require().NoError(err)
+
+	alice, _, err := val.ClientCtx.Keyring.NewMnemonic("alice", keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
+	s.Require().NoError(err)
+	_, err = banktestutil.MsgSendExec(
+		val.ClientCtx,
+		val.Address,
+		alice.GetAddress(),
+		sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(2000))), fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+	)
+	s.Require().NoError(err)
+
+	// create new dids
+	out, err := clitestutil.ExecTestCLICmd(clientCtx, didcli.NewCreateDidDocumentCmd(),
+		[]string{
+			"issuer-did-for-client-tests",
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, issuer.GetAddress().String()),
+			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+			fmt.Sprintf(
+				"--%s=%s",
+				flags.FlagFees,
+				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
+			)})
+	s.Require().NoError(err, out.String())
+	var txResp = sdk.TxResponse{}
+	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &txResp), out.String())
+
+	out, err = clitestutil.ExecTestCLICmd(clientCtx, didcli.NewCreateDidDocumentCmd(),
+		[]string{
+			"alice-did-for-client-tests",
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, issuer.GetAddress().String()),
+			fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+			fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+			fmt.Sprintf(
+				"--%s=%s",
+				flags.FlagFees,
+				sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
+			)})
+	s.Require().NoError(err, out.String())
+	txResp = sdk.TxResponse{}
+	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), &txResp), out.String())
+
 }
 
 // TearDownSuite performs cleanup logic after all the tests, i.e. once after the
@@ -155,78 +224,76 @@ func (s *IntegrationTestSuite) TestGetCmdQueryVerifiableCredential() {
 	}
 }
 
-// TODO: move to issuer and regulator credential
-// func (s *IntegrationTestSuite) TestNewCreateVerifiableCredentialCmd() {
-// 	val := s.network.Validators[0]
+func (s *IntegrationTestSuite) TestIssueVerifiableCredentialCmd() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
 
-// 	testCases := []struct {
-// 		name         string
-// 		args         []string
-// 		expectErr    bool
-// 		respType     proto.Message
-// 		expectedCode uint32
-// 	}{
-// 		{
-// 			"PASS: creating a valid transaction in the verifiable credentials module",
-// 			[]string{
-// 				"did:cash:1111",
-// 				"test-cred-1",
-// 				"did:cosmos:net:cash:issuerdid",
-// 				"secret",
-// 				"businessName",
-// 				"businessRegistrationNumber",
-// 				"businessType",
-// 				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-// 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-// 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-// 				fmt.Sprintf(
-// 					"--%s=%s",
-// 					flags.FlagFees,
-// 					sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
-// 				),
-// 			},
-// 			false, &sdk.TxResponse{}, 0,
-// 		},
-// 		{
-// 			"FAIL: incorrect number of params passed into the create verifiable credentials client command",
-// 			[]string{
-// 				fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
-// 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
-// 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-// 				fmt.Sprintf(
-// 					"--%s=%s",
-// 					flags.FlagFees,
-// 					sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
-// 				),
-// 			},
-// 			true, &sdk.TxResponse{}, 0,
-// 		},
-// 	}
+	issuerDid := "did:cosmos:net:" + clientCtx.ChainID + ":" + "issuer-did-for-client-tests"
+	issuerInfo, err := clientCtx.Keyring.Key("issuer")
+	s.Require().NoError(err)
+	issuerAddress := issuerInfo.GetAddress()
 
-// 	for _, tc := range testCases {
-// 		s.Run(tc.name, func() {
-// 			cmd := cli.NewCreateKYCVerifiableCredentialCmd()
-// 			clientCtx := val.ClientCtx
+	bbsParamsFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real bbs+ public parameters")
+	accParamsFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real accumulator public parameters")
+	accStateFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real accumulator state")
+	schemaId := "anonymous-credential-schema-for-client-tests-2022"
 
-// 			out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
+	var commonFlags = []string{
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf(
+			"--%s=%s",
+			flags.FlagFees,
+			sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
+		),
+	}
 
-// 			// TODO: optimize this
-// 			errNet := s.network.WaitForNextBlock()
-// 			s.Require().NoError(errNet)
-// 			errNet = s.network.WaitForNextBlock()
-// 			s.Require().NoError(errNet)
-// 			if tc.expectErr {
-// 				s.Require().Error(err)
-// 			} else {
-// 				s.Require().NoError(err)
-// 				s.Require().NoError(clientCtx.JSONCodec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
+	testCases := []struct {
+		name     string
+		args     []string
+		respType proto.Message
+	}{
+		{
+			"Pass: issue a new anonymous credential schema",
+			append(
+				[]string{
+					issuerDid,
+					bbsParamsFile.Name(),
+					accParamsFile.Name(),
+					accStateFile.Name(),
+					fmt.Sprintf("--credential-id=%s", schemaId),
+					fmt.Sprintf("--%s=%s", flags.FlagFrom, issuerAddress.String()),
+				},
+				commonFlags...),
+			&sdk.TxResponse{},
+		},
+	}
 
-// 				txResp := tc.respType.(*sdk.TxResponse)
-// 				s.Require().Equal(tc.expectedCode, txResp.Code, out.String())
-// 			}
-// 		})
-// 	}
-// }
+	for _, tc := range testCases {
+
+		s.Run(tc.name, func() {
+			cmd := cli.IssueAnonymousCredentialSchemaCmd()
+			out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
+			s.Require().NoError(err, out.String())
+			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
+
+			//pull out the just created anonymous credential schema
+			cmd = cli.GetCmdQueryVerifiableCredential()
+			identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
+			args_temp := []string{
+				identifiertoquery,
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			}
+			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+			s.Require().NoError(err)
+			response1 := &types.QueryVerifiableCredentialResponse{}
+
+			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), response1))
+			s.Require().Equal(response1.GetVerifiableCredential().Id, identifiertoquery)
+
+		})
+	}
+}
 
 func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))

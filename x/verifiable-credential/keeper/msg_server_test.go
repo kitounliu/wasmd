@@ -136,19 +136,22 @@ func (suite *KeeperTestSuite) TestMsgSeverIssueAnonymousCredentialSchema() {
 				issuerAddress := suite.GetIssuerAddress()
 
 				vc = types.NewAnonymousCredentialSchema(
-					"anonymous-credential-schema-2022",
+					"vc:cosmos:net:test:anonymous-credential-schema-2022",
 					issuerDid.String(),
 					time.Now(),
 					types.NewAnonymousCredentialSchemaSubject(
 						issuerDid.String(),
 						[]string{"BBS+", "Accumulator"},
-						"placeholder for bbs+ public parameters",
-						types.AccumulatorParameters{
-							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
+						&types.BbsPlusParameters{
+							Type:         []string{"https://eprint.iacr.org/2016/663.pdf", "BLS12381"},
+							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
+							PublicParams: "placeholder for bbs+ public parameters",
+						},
+						&types.AccumulatorParameters{
+							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state", "BLS12381"},
+							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
 							PublicParams: "placeholder for accumulator public parameters",
-							State: &types.AccumulatorParameters_MembershipState{
-								MembershipState: "placeholder for membership state",
-							},
+							State:        "placeholder for state",
 						},
 					),
 				)
@@ -202,19 +205,22 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 				issuerAddress := suite.GetIssuerAddress()
 
 				vc = types.NewAnonymousCredentialSchema(
-					"anonymous-credential-schema-2023",
+					"vc:cosmos:net:test:anonymous-credential-schema-2023",
 					issuerDid.String(),
 					time.Now(),
 					types.NewAnonymousCredentialSchemaSubject(
 						issuerDid.String(),
 						[]string{"BBS+", "Accumulator"},
-						"placeholder for bbs+ public parameters",
-						types.AccumulatorParameters{
+						&types.BbsPlusParameters{
+							Type:         []string{"https://eprint.iacr.org/2016/663.pdf"},
+							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
+							PublicParams: "placeholder for bbs+ public parameters",
+						},
+						&types.AccumulatorParameters{
 							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
+							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
 							PublicParams: "placeholder for accumulator public parameters",
-							State: &types.AccumulatorParameters_MembershipState{
-								MembershipState: "placeholder for membership state",
-							},
+							State:        "placeholder for state",
 						},
 					),
 				)
@@ -234,14 +240,8 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 				// update the accumulator state
 				// clean the proof
 				vc.Proof = nil
-				vc, err = vc.SetMembershipState(types.AccumulatorParameters_MembershipState{
-					MembershipState: "placeholder for new membership state after adding a new member",
-				})
+				vc, err = vc.SetAccumulatorState("placeholder for new membership state after adding a new member or delete a member")
 				suite.NoError(err)
-				_, err = vc.SetNonMembershipState(types.AccumulatorParameters_NonMembershipState{
-					NonMembershipState: "non membership state for fail",
-				})
-				suite.Error(err)
 				// update proof
 				vc, _ = vc.Sign(
 					suite.keyring, suite.GetIssuerAddress(),

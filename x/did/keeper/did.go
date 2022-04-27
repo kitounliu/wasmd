@@ -141,28 +141,21 @@ func (k Keeper) GetDidDocumentsByPubKey(ctx sdk.Context, pubkey cryptotypes.PubK
 
 func (k Keeper) VerifyDidWithRelationships(ctx sdk.Context, constraints []string, did, signer string) (err error) {
 	k.Logger(ctx).Info("verify a did document", "target did", did)
-	// get the did document
-	didDoc, found := k.GetDidDocument(ctx, []byte(did))
-	if !found {
-		err = sdkerrors.Wrapf(types.ErrDidDocumentNotFound, "did document at %s not found", did)
-		k.Logger(ctx).Error(err.Error())
+	// Check to see if the provided did is in the store
+	doc, _, err := k.ResolveDid(ctx, types.DID(did))
+	if err != nil {
 		return
 	}
 
-	// Any verification method in the authentication relationship can update the DID document
-	if !didDoc.HasRelationship(types.NewBlockchainAccountID(ctx.ChainID(), signer), constraints...) {
-		// check also the controllers
-		signerDID := types.NewKeyDID(signer)
-		if !didDoc.HasController(signerDID) {
-			// if also the controller was not set the error
-			err = sdkerrors.Wrapf(
-				types.ErrUnauthorized,
-				"signer account %s not authorized to update the target did document at %s",
-				signer, did,
-			)
-			k.Logger(ctx).Error(err.Error())
-			return
-		}
+	// Check to see if the msg signer has a verification relationship in the did document
+	if !doc.HasRelationship(types.NewBlockchainAccountID(ctx.ChainID(), signer), constraints...) {
+		err = sdkerrors.Wrapf(
+			types.ErrUnauthorized,
+			"signer account %s not authorized to update the target did document at %s",
+			signer, did,
+		)
+		k.Logger(ctx).Error(err.Error())
+		return
 	}
 
 	k.Logger(ctx).Info("Verified relationship from did document for", "did", did, "controller", signer)

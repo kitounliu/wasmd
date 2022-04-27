@@ -88,7 +88,7 @@ func GetCmdQueryVerifiableCredential() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(&res.VerifiableCredential)
+			return clientCtx.PrintProto(res)
 		},
 	}
 

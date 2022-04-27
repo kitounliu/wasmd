@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 	"strings"
 	"time"
 
@@ -35,6 +36,10 @@ func IsValidCredentialType(credential string) bool {
 	default:
 		return false
 	}
+}
+
+func NewChainVcId(chainName, id string) string {
+	return fmt.Sprint(VcChainPrefix, chainName, ":", id)
 }
 
 // NewAnonymousCredentialSchema constructs a new VerifiableCredential instance
@@ -95,15 +100,15 @@ func NewRegistrationVerifiableCredential(
 func NewAnonymousCredentialSchemaSubject(
 	subId string,
 	subType []string,
-	bbsPlusParams string,
-	accumParams AccumulatorParameters,
+	bbsPlusParams *BbsPlusParameters,
+	accumParams *AccumulatorParameters,
 ) VerifiableCredential_AnonCredSchema {
 	return VerifiableCredential_AnonCredSchema{
 		&AnonymousCredentialSchemaSubject{
 			Id:            subId,
 			Type:          subType,
 			BbsPlusParams: bbsPlusParams,
-			AccumParams:   &accumParams,
+			AccumParams:   accumParams,
 		},
 	}
 }
@@ -271,34 +276,15 @@ func (vc VerifiableCredential) GetBytes() []byte {
 }
 
 // SetMembershipState sets a new membership state
-func (vc VerifiableCredential) SetMembershipState(
-	state AccumulatorParameters_MembershipState,
+func (vc VerifiableCredential) SetAccumulatorState(
+	state string,
 ) (VerifiableCredential, error) {
 	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
 	if !ok {
 		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
 	}
-	_, ok = sub.AnonCredSchema.AccumParams.State.(*AccumulatorParameters_MembershipState)
-	if !ok {
-		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an accumulator membership state")
-	}
-	sub.AnonCredSchema.AccumParams.State = &state
-	return vc, nil
-}
 
-// SetMembershipState sets a new membership state
-func (vc VerifiableCredential) SetNonMembershipState(
-	state AccumulatorParameters_NonMembershipState,
-) (VerifiableCredential, error) {
-	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
-	if !ok {
-		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
-	}
-	_, ok = sub.AnonCredSchema.AccumParams.State.(*AccumulatorParameters_NonMembershipState)
-	if !ok {
-		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an accumulator non-membership state")
-	}
-	sub.AnonCredSchema.AccumParams.State = &state
+	sub.AnonCredSchema.AccumParams.State = state
 	return vc, nil
 }
 

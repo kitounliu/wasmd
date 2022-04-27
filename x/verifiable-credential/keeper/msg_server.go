@@ -39,7 +39,7 @@ func (k msgServer) IssueRegistrationCredential(goCtx context.Context, msg *types
 		return nil, err
 	}
 
-	// verify issuer is the did owner
+	// check if message signer is authorised by the did
 	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (k msgServer) IssueUserCredential(
 		return nil, err
 	}
 
-	// check that the issuer is a holder of did
+	// check if message signer is authorised by the did
 	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (k msgServer) IssueAnonymousCredentialSchema(
 		return nil, err
 	}
 
-	// check that the issuer is a holder of did
+	// check if message signer is authorised by the did
 	if err := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); err != nil {
 		return nil, err
 	}
@@ -192,11 +192,12 @@ func (k msgServer) UpdateAnonymousCredentialSchema(
 		return nil, err
 	}
 
-	// check that the issuer is a holder of did
+	// check if message signer is authorised by the did
 	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); didErr != nil {
 		return nil, didErr
 	}
 
+	// issuers of old and new vc are not necessarily the same
 	if oldDidErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); oldDidErr != nil {
 		return nil, oldDidErr
 	}
@@ -233,7 +234,7 @@ func (k msgServer) RevokeCredential(goCtx context.Context, msg *types.MsgRevokeC
 		return nil, err
 	}
 
-	// check that the issuer is a holder of did
+	// check if message signer is authorised by the did
 	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); didErr != nil {
 		return nil, didErr
 	}

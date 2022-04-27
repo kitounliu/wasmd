@@ -20,6 +20,9 @@ const (
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
 
+	// VcChainPrefix defines the vc prefix for this chain
+	VcChainPrefix = "vc:cosmos:net:"
+
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_capability_vc"
 )
