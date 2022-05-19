@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/accumulator"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/anonymouscredential"
+
 	didtypes "github.com/CosmWasm/wasmd/x/did/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -33,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		IssueRegistrationCredentialCmd(),
 		IssueUserVerifiableCredentialCmd(),
 		IssueAnonymousCredentialSchemaCmd(),
+		UpdateAccumulatorStateCmd(),
 		NewDeleteVerifiableCredentialCmd(),
 		NewRevokeCredentialCmd(),
 	)
@@ -194,68 +198,47 @@ func IssueAnonymousCredentialSchemaCmd() *cobra.Command {
 	var credentialID string
 
 	cmd := &cobra.Command{
-		Use:   `issue-anonymous-credential-schema [issuer_did] [bbs-params-json-file] [accum-params-json-file] [accum-state-json-file]`,
+		Use:   `issue-anonymous-credential-schema [issuer_did] [pub-params-json-file]`,
 		Short: "create decentralized verifiable-credential",
 		Example: `cosmos-cashd tx issuer issue-anonymous-credential \
-did:cosmos:net:test:issuer bbs_params.json accum_params.json accum_state.json \
+did:cosmos:net:test:issuer pub_params.json \
 --credential-id anonymous-credential-schema-April-2022 \
 --from issuerAddress --chain-id test -y`,
-		Args: cobra.MinimumNArgs(2),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			accAddr := clientCtx.GetFromAddress()
-			accAddrBech32 := accAddr.String()
+			issuerAddr := accAddr.String()
 
 			issuerDid := didtypes.DID(args[0])
-
-			bbsPubParams, err := ioutil.ReadFile(args[1])
+			content, err := ioutil.ReadFile(args[1])
 			if err != nil {
 				return err
 			}
 
-			bbsParams := types.BbsPlusParameters{
-				Type:         []string{"https://eprint.iacr.org/2016/663.pdf"},
-				Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-				PublicParams: string(bbsPubParams),
+			pubParams := anonymouscredential.PublicParameters{}
+			err = clientCtx.Codec.UnmarshalJSON(content, &pubParams)
+			if err != nil {
+				return err
 			}
 
-			var anonySub types.VerifiableCredential_AnonCredSchema
-			switch len(args) {
-			case 2:
-				anonySub = types.NewAnonymousCredentialSchemaSubject(
-					issuerDid.String(),
-					[]string{"BBS+"},
-					&bbsParams,
-					nil,
-				)
-			case 4:
-				accumPubParams, err := ioutil.ReadFile(args[2])
-				if err != nil {
-					return err
-				}
-				accumState, err := ioutil.ReadFile(args[3])
-				if err != nil {
-					return err
-				}
-				accumParams := types.AccumulatorParameters{
-					Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
-					Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-					PublicParams: string(accumPubParams),
-					State:        string(accumState),
-				}
-				anonySub = types.NewAnonymousCredentialSchemaSubject(
-					issuerDid.String(),
-					[]string{"BBS+", "Accumulator"},
-					&bbsParams,
-					&accumParams,
-				)
-			default:
-				return fmt.Errorf("wrong number of arguments: expected 2 or 4 got %d", len(args))
-
+			subType := []string{"BBS+", "Accumulator"}
+			subContext := []string{
+				"https://eprint.iacr.org/2016/663.pdf",
+				"https://eprint.iacr.org/2020/777.pdf",
+				"https://github.com/coinbase/kryptology",
+				"https://github.com/kitounliu/kryptology/tree/combine",
 			}
+
+			anonySub := types.NewAnonymousCredentialSchemaSubject(
+				issuerDid.String(),
+				subType,
+				subContext,
+				&pubParams,
+			)
 
 			now := time.Now()
 			// assign a credential id if not set
@@ -271,7 +254,7 @@ did:cosmos:net:test:issuer bbs_params.json accum_params.json accum_state.json \
 				anonySub,
 			)
 
-			vmID := issuerDid.NewVerificationMethodID(accAddrBech32)
+			vmID := issuerDid.NewVerificationMethodID(issuerAddr)
 			signedVc, err := vc.Sign(clientCtx.Keyring, accAddr, vmID)
 			if err != nil {
 				return err
@@ -279,7 +262,7 @@ did:cosmos:net:test:issuer bbs_params.json accum_params.json accum_state.json \
 
 			msg := types.NewMsgIssueAnonymousCredentialSchema(
 				signedVc,
-				accAddrBech32,
+				issuerAddr,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
@@ -287,6 +270,68 @@ did:cosmos:net:test:issuer bbs_params.json accum_params.json accum_state.json \
 	}
 
 	cmd.Flags().StringVar(&credentialID, "credential-id", "", "the credential identifier, automatically assigned if not provided")
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func UpdateAccumulatorStateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     `update-accumulator-state [issuer_did] [state_json_file] [schema_cred_json_file]`,
+		Short:   "update accumulator state",
+		Example: "update accumulator state after adding/deleting members",
+		Args:    cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			accAddr := clientCtx.GetFromAddress()
+			issuerAddr := accAddr.String()
+			issuerDid := didtypes.DID(args[0])
+
+			contentState, err := ioutil.ReadFile(args[1])
+			if err != nil {
+				return err
+			}
+			state := accumulator.State{}
+			err = clientCtx.Codec.UnmarshalJSON(contentState, &state)
+			if err != nil {
+				return err
+			}
+
+			contentSchema, err := ioutil.ReadFile(args[2])
+			if err != nil {
+				return err
+			}
+			vc := types.VerifiableCredential{}
+			err = clientCtx.Codec.UnmarshalJSON(contentSchema, &vc)
+			if err != nil {
+				return err
+			}
+
+			if vc.Issuer != args[0] {
+				return fmt.Errorf("issuer did does not match expect %s got %s", vc.Issuer, args[0])
+			}
+
+			newVc, err := vc.SetAccumulatorState(&state)
+			if err != nil {
+				return err
+			}
+
+			newVc.Proof = nil
+			vmID := issuerDid.NewVerificationMethodID(issuerAddr)
+			signedNewVc, err := newVc.Sign(clientCtx.Keyring, accAddr, vmID)
+
+			msg := types.MsgUpdateAnonymousCredentialSchema{
+				Credential: &signedNewVc,
+				Owner:      issuerAddr,
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
 
 	flags.AddTxFlagsToCmd(cmd)
 

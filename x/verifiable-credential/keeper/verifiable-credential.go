@@ -190,8 +190,8 @@ Outer:
 			err,
 		)
 	}
-	//
-	if isValid := vc.Validate(pk); !isValid {
+	err = vc.Validate(pk)
+	if err != nil {
 		return sdkerrors.Wrapf(
 			types.ErrMessageSigner,
 			"verification error %v",

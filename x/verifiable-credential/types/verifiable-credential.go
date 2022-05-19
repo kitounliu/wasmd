@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/accumulator"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/anonymouscredential"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -100,15 +103,15 @@ func NewRegistrationVerifiableCredential(
 func NewAnonymousCredentialSchemaSubject(
 	subId string,
 	subType []string,
-	bbsPlusParams *BbsPlusParameters,
-	accumParams *AccumulatorParameters,
+	subContext []string,
+	publicParams *anonymouscredential.PublicParameters,
 ) VerifiableCredential_AnonCredSchema {
 	return VerifiableCredential_AnonCredSchema{
 		&AnonymousCredentialSchemaSubject{
-			Id:            subId,
-			Type:          subType,
-			BbsPlusParams: bbsPlusParams,
-			AccumParams:   accumParams,
+			Id:           subId,
+			Type:         subType,
+			Context:      subContext,
+			PublicParams: publicParams,
 		},
 	}
 }
@@ -186,10 +189,10 @@ func NewProof(
 // Validate validates a verifiable credential against a provided public key
 func (vc VerifiableCredential) Validate(
 	pk cryptotypes.PubKey,
-) bool {
+) error {
 	s, err := base64.StdEncoding.DecodeString(vc.Proof.Signature)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// reset the proof
@@ -202,7 +205,11 @@ func (vc VerifiableCredential) Validate(
 		s,
 	)
 
-	return isCorrectPubKey
+	if !isCorrectPubKey {
+		return fmt.Errorf("failed to verify verificable credential proof")
+	}
+
+	return nil
 }
 
 // Sign signs a credential with a provided private key
@@ -277,14 +284,16 @@ func (vc VerifiableCredential) GetBytes() []byte {
 
 // SetMembershipState sets a new membership state
 func (vc VerifiableCredential) SetAccumulatorState(
-	state string,
+	state *accumulator.State,
 ) (VerifiableCredential, error) {
 	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
 	if !ok {
 		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
 	}
-
-	sub.AnonCredSchema.AccumParams.State = state
+	if sub.AnonCredSchema.PublicParams.AccumulatorPublicParams == nil {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "anonymous credential scheme does not have accumulator")
+	}
+	sub.AnonCredSchema.PublicParams.AccumulatorPublicParams.State = state
 	return vc, nil
 }
 

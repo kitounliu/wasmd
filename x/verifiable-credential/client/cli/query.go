@@ -122,10 +122,14 @@ func GetCmdQueryValidateVerifiableCredential() *cobra.Command {
 			var pk cryptotypes.PubKey
 			err = clientCtx.Codec.UnmarshalInterfaceJSON([]byte(args[1]), &pk)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
-			isValid := res.VerifiableCredential.Validate(pk)
+			err = res.VerifiableCredential.Validate(pk)
+			isValid := false
+			if err == nil {
+				isValid = true
+			}
 
 			result := &types.QueryValidateVerifiableCredentialResponse{
 				IsValid: isValid,

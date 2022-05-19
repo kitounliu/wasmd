@@ -3,6 +3,10 @@ package cli_test
 import (
 	"fmt"
 
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/accumulator"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/anonymouscredential"
+	vctypes "github.com/CosmWasm/wasmd/x/verifiable-credential/types"
+
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -233,10 +237,11 @@ func (s *IntegrationTestSuite) TestIssueVerifiableCredentialCmd() {
 	s.Require().NoError(err)
 	issuerAddress := issuerInfo.GetAddress()
 
-	bbsParamsFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real bbs+ public parameters")
-	accParamsFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real accumulator public parameters")
-	accStateFile := testutil.WriteToNewTempFile(s.T(), "placeholder for real accumulator state")
-	schemaId := "anonymous-credential-schema-for-client-tests-2022"
+	_, pp, err := anonymouscredential.NewAnonymousCredentialSchema(5)
+	s.Require().NoError(err)
+	pubParams, err := clientCtx.Codec.MarshalJSON(pp)
+	pubParamsFile := testutil.WriteToNewTempFile(s.T(), string(pubParams))
+	schemaId := "anonymous-credential-schema-for-client-tests-issue-vc-2022"
 
 	var commonFlags = []string{
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
@@ -258,9 +263,7 @@ func (s *IntegrationTestSuite) TestIssueVerifiableCredentialCmd() {
 			append(
 				[]string{
 					issuerDid,
-					bbsParamsFile.Name(),
-					accParamsFile.Name(),
-					accStateFile.Name(),
+					pubParamsFile.Name(),
 					fmt.Sprintf("--credential-id=%s", schemaId),
 					fmt.Sprintf("--%s=%s", flags.FlagFrom, issuerAddress.String()),
 				},
@@ -291,6 +294,111 @@ func (s *IntegrationTestSuite) TestIssueVerifiableCredentialCmd() {
 			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), response1))
 			s.Require().Equal(response1.GetVerifiableCredential().Id, identifiertoquery)
 
+		})
+	}
+}
+
+func (s *IntegrationTestSuite) TestUpdateAccumulatorStateCmd() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	issuerDid := "did:cosmos:net:" + clientCtx.ChainID + ":" + "issuer-did-for-client-tests"
+	issuerInfo, err := clientCtx.Keyring.Key("issuer")
+	s.Require().NoError(err)
+	issuerAddress := issuerInfo.GetAddress()
+
+	_, pp, err := anonymouscredential.NewAnonymousCredentialSchema(5)
+	s.Require().NoError(err)
+	pubParams, err := clientCtx.Codec.MarshalJSON(pp)
+	pubParamsFile := testutil.WriteToNewTempFile(s.T(), string(pubParams))
+	schemaId := "anonymous-credential-schema-for-client-tests-update-acc-state-2024"
+
+	var commonFlags = []string{
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf(
+			"--%s=%s",
+			flags.FlagFees,
+			sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String(),
+		),
+	}
+	args := append(
+		[]string{
+			issuerDid,
+			pubParamsFile.Name(),
+			fmt.Sprintf("--credential-id=%s", schemaId),
+			fmt.Sprintf("--%s=%s", flags.FlagFrom, issuerAddress.String()),
+		},
+		commonFlags...)
+
+	cmd := cli.IssueAnonymousCredentialSchemaCmd()
+	out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, args)
+	s.Require().NoError(err, out.String())
+
+	err = s.network.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	//pull out the just created anonymous credential schema
+	cmd = cli.GetCmdQueryVerifiableCredential()
+	identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
+	args_temp := []string{
+		identifiertoquery,
+		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+	}
+	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+	s.Require().NoError(err)
+	response := &types.QueryVerifiableCredentialResponse{}
+	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), response), out.String())
+	vc, err := clientCtx.Codec.MarshalJSON(&response.VerifiableCredential)
+	s.Require().NoError(err)
+	vcFile := testutil.WriteToNewTempFile(s.T(), string(vc))
+
+	newState := &accumulator.State{[]byte("placeholder for new accumulator"), nil}
+	state, err := clientCtx.Codec.MarshalJSON(newState)
+	stateFile := testutil.WriteToNewTempFile(s.T(), string(state))
+
+	testCases := []struct {
+		name     string
+		args     []string
+		respType proto.Message
+	}{
+		{
+			"Pass: update accumulator state in anonymous credential schema",
+			append(
+				[]string{
+					issuerDid,
+					stateFile.Name(),
+					vcFile.Name(),
+					fmt.Sprintf("--%s=%s", flags.FlagFrom, issuerAddress.String()),
+				},
+				commonFlags...),
+			&sdk.TxResponse{},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			cmd := cli.UpdateAccumulatorStateCmd()
+			out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, tc.args)
+			s.Require().NoError(err, out.String())
+			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), tc.respType), out.String())
+
+			//pull out the just created anonymous credential schema
+			cmd = cli.GetCmdQueryVerifiableCredential()
+			identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
+			args_temp := []string{
+				identifiertoquery,
+				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
+			}
+			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+			s.Require().NoError(err)
+			res := &types.QueryVerifiableCredentialResponse{}
+			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), res), out.String())
+			s.Require().Equal(res.GetVerifiableCredential().Id, identifiertoquery)
+
+			vcSub := res.VerifiableCredential.GetCredentialSubject().(*vctypes.VerifiableCredential_AnonCredSchema)
+			st := vcSub.AnonCredSchema.PublicParams.AccumulatorPublicParams.State
+			s.Require().Equal(st, newState)
 		})
 	}
 }

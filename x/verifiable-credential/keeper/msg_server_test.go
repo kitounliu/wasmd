@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/accumulator"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/anonymouscredential"
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/bbsplus"
+
 	didtypes "github.com/CosmWasm/wasmd/x/did/types"
 	"github.com/CosmWasm/wasmd/x/verifiable-credential/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -82,7 +86,7 @@ func (suite *KeeperTestSuite) TestMsgSeverIssueUserCredential() {
 				aliceDid := didtypes.DID("did:cosmos:net:test:alice")
 				issuerAddress := suite.GetIssuerAddress()
 				vc = types.NewUserVerifiableCredential(
-					"alice-registraion-credential",
+					"alice-registration-credential",
 					issuerDid.String(),
 					time.Now(),
 					types.NewUserCredentialSubject(
@@ -142,16 +146,21 @@ func (suite *KeeperTestSuite) TestMsgSeverIssueAnonymousCredentialSchema() {
 					types.NewAnonymousCredentialSchemaSubject(
 						issuerDid.String(),
 						[]string{"BBS+", "Accumulator"},
-						&types.BbsPlusParameters{
-							Type:         []string{"https://eprint.iacr.org/2016/663.pdf", "BLS12381"},
-							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-							PublicParams: "placeholder for bbs+ public parameters",
+						[]string{
+							"https://eprint.iacr.org/2016/663.pdf",
+							"https://eprint.iacr.org/2020/777.pdf",
+							"https://github.com/coinbase/kryptology",
+							"https://github.com/kitounliu/kryptology/tree/combine",
 						},
-						&types.AccumulatorParameters{
-							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state", "BLS12381"},
-							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-							PublicParams: "placeholder for accumulator public parameters",
-							State:        "placeholder for state",
+						&anonymouscredential.PublicParameters{
+							BbsPlusPublicParams: &bbsplus.PublicParameters{
+								5,
+								[]byte("placeholder for bbs+ public key"),
+							},
+							AccumulatorPublicParams: &accumulator.PublicParameters{
+								[]byte("placeholder for accumulator public key"),
+								nil,
+							},
 						},
 					),
 				)
@@ -211,16 +220,21 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 					types.NewAnonymousCredentialSchemaSubject(
 						issuerDid.String(),
 						[]string{"BBS+", "Accumulator"},
-						&types.BbsPlusParameters{
-							Type:         []string{"https://eprint.iacr.org/2016/663.pdf"},
-							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-							PublicParams: "placeholder for bbs+ public parameters",
+						[]string{
+							"https://eprint.iacr.org/2016/663.pdf",
+							"https://eprint.iacr.org/2020/777.pdf",
+							"https://github.com/coinbase/kryptology",
+							"https://github.com/kitounliu/kryptology/tree/combine",
 						},
-						&types.AccumulatorParameters{
-							Type:         []string{"https://eprint.iacr.org/2020/777.pdf", "membership state"},
-							Context:      []string{"https://github.com/coinbase/kryptology", "https://github.com/kitounliu/kryptology/tree/combine"},
-							PublicParams: "placeholder for accumulator public parameters",
-							State:        "placeholder for state",
+						&anonymouscredential.PublicParameters{
+							BbsPlusPublicParams: &bbsplus.PublicParameters{
+								5,
+								[]byte("placeholder for bbs+ public key"),
+							},
+							AccumulatorPublicParams: &accumulator.PublicParameters{
+								[]byte("placeholder for accumulator public key"),
+								nil,
+							},
 						},
 					),
 				)
@@ -240,7 +254,7 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 				// update the accumulator state
 				// clean the proof
 				vc.Proof = nil
-				vc, err = vc.SetAccumulatorState("placeholder for new membership state after adding a new member or delete a member")
+				vc, err = vc.SetAccumulatorState(&accumulator.State{[]byte("placeholder for accumulator"), nil})
 				suite.NoError(err)
 				// update proof
 				vc, _ = vc.Sign(

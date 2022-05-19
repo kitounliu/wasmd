@@ -7,6 +7,7 @@ option go_package = "github.com/CosmWasm/wasmd/x/verifiable-credential/types";
 
 import "gogoproto/gogo.proto";
 import "cosmos-cash/verifiable-credential/verifiable-credential.proto";
+import "cosmos-cash/verifiable-credential/crypto/accumulator/accumulator.proto";
 
 
 // Msg defines the identity Msg service.
