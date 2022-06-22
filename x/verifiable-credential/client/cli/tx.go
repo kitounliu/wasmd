@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,8 +38,11 @@ func GetTxCmd() *cobra.Command {
 		IssueUserVerifiableCredentialCmd(),
 		IssueAnonymousCredentialSchemaCmd(),
 		UpdateAccumulatorStateCmd(),
-		NewDeleteVerifiableCredentialCmd(),
+		//	NewDeleteVerifiableCredentialCmd(),
 		NewRevokeCredentialCmd(),
+		UpdateVerifiableCredentialCmd(),
+		// offchain crypto functions
+		CreateAnonymousCredentialParametersCmd(),
 	)
 
 	return cmd
@@ -54,7 +58,7 @@ func IssueRegistrationCredentialCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   `issue-registration-credential [issuer_did] [subject_did] [country] [short_name] [long_name]`,
 		Short: "issue a registration credential for a DID",
-		Example: `cosmos-cashd tx issue-registration-credential \
+		Example: `wasmd tx vc issue-registration-credential \
 did:cosmos:net:testnet:issuer \ 
 did:cosmos:net:testnet:alice \
 EU EmoneyONE "EmoneyONE GmbH" `,
@@ -117,7 +121,7 @@ func IssueUserVerifiableCredentialCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   `issue-user-credential [issuer_did] [subject_did] [secret] [data[,data]*]`,
 		Short: "create decentralized verifiable-credential",
-		Example: `cosmos-cashd tx issuer issue-user-credential \
+		Example: `wasmd tx vc issue-user-credential \
 did:cosmos:net:testnet:issuer did:cosmos:net:testnet:alice zkp_secret 1000 1000 1000 \
 --credential-id alice-proof-of-kyc \
 --from issuerAddress --chain-id cash -y`,
@@ -200,7 +204,7 @@ func IssueAnonymousCredentialSchemaCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   `issue-anonymous-credential-schema [issuer_did] [pub-params-json-file]`,
 		Short: "create decentralized verifiable-credential",
-		Example: `cosmos-cashd tx issuer issue-anonymous-credential \
+		Example: `wasmd tx vc issue-anonymous-credential \
 did:cosmos:net:test:issuer pub_params.json \
 --credential-id anonymous-credential-schema-April-2022 \
 --from issuerAddress --chain-id test -y`,
@@ -280,7 +284,7 @@ func UpdateAccumulatorStateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     `update-accumulator-state [issuer_did] [state_json_file] [schema_cred_json_file]`,
 		Short:   "update accumulator state",
-		Example: "update accumulator state after adding/deleting members",
+		Example: "wasmd tx vc update accumulator state after adding/deleting members",
 		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -316,20 +320,64 @@ func UpdateAccumulatorStateCmd() *cobra.Command {
 				return fmt.Errorf("issuer did does not match expect %s got %s", vc.Issuer, args[0])
 			}
 
-			newVc, err := vc.SetAccumulatorState(&state)
+			newVc, err := vc.UpdateAccumulatorState(&state)
 			if err != nil {
 				return err
 			}
+
+			now := time.Now()
+			newVc.IssuanceDate = &now
 
 			newVc.Proof = nil
 			vmID := issuerDid.NewVerificationMethodID(issuerAddr)
 			signedNewVc, err := newVc.Sign(clientCtx.Keyring, accAddr, vmID)
 
-			msg := types.MsgUpdateAnonymousCredentialSchema{
-				Credential: &signedNewVc,
-				Owner:      issuerAddr,
+			msg := types.NewMsgUpdateAccumulatorState(signedNewVc.Id, signedNewVc.IssuanceDate, &state, signedNewVc.Proof, issuerAddr)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func UpdateVerifiableCredentialCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     `update-verifiable-credential [cred_json_file]`,
+		Short:   "update verifiable credential",
+		Example: "wasmd tx vc update verifiable credential",
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
 			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+
+			accAddr := clientCtx.GetFromAddress()
+			issuerAddr := accAddr.String()
+
+			vcBytes, err := ioutil.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+			vc := types.VerifiableCredential{}
+			err = clientCtx.Codec.UnmarshalJSON(vcBytes, &vc)
+			if err != nil {
+				return err
+			}
+
+			issuerDid := didtypes.DID(vc.Issuer)
+
+			now := time.Now()
+			vc.IssuanceDate = &now
+
+			vc.Proof = nil
+			vmID := issuerDid.NewVerificationMethodID(issuerAddr)
+			signedVc, err := vc.Sign(clientCtx.Keyring, accAddr, vmID)
+
+			msg := types.NewMsgUpdateVerifiableCredential(signedVc, issuerAddr)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -381,4 +429,52 @@ func revokeCredential(cmd *cobra.Command, args []string) error {
 	msg := types.NewMsgRevokeVerifiableCredential(credentialID, accAddrBech32)
 
 	return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+}
+
+// CreateAnonymousCredentialParametersCmd defines the command to create anonymous credential parameters
+func CreateAnonymousCredentialParametersCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     `create-anonymous-credential-params [msg_len] [sk-json-file-path] [pp-json-file-path] `,
+		Short:   "create anonymous-credential parameters",
+		Example: `fetchd tx vc create-anonymous-credential-params 5 sk.json pp.json`,
+		Args:    cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msgLen, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			sk, pp, err := anonymouscredential.NewAnonymousCredentialSchema(int(msgLen))
+			if err != nil {
+				return err
+			}
+
+			skBytes, err := clientCtx.Codec.MarshalJSON(sk)
+			if err != nil {
+				return err
+			}
+
+			err = ioutil.WriteFile(args[1], skBytes, 0644)
+			if err != nil {
+				return err
+			}
+			fmt.Fprintln(cmd.ErrOrStderr(), "\n**Important** issuer's private key is written to ", args[1])
+
+			ppBytes, err := clientCtx.Codec.MarshalJSON(pp)
+			if err != nil {
+				return err
+			}
+			err = ioutil.WriteFile(args[2], ppBytes, 0644)
+			fmt.Fprintln(cmd.ErrOrStderr(), "\n**Important** issuer's public parameters are written to ", args[2])
+
+			return err
+		},
+	}
+
+	return cmd
 }

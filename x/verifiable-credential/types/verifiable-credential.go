@@ -283,7 +283,7 @@ func (vc VerifiableCredential) GetBytes() []byte {
 }
 
 // SetMembershipState sets a new membership state
-func (vc VerifiableCredential) SetAccumulatorState(
+func (vc VerifiableCredential) UpdateAccumulatorState(
 	state *accumulator.State,
 ) (VerifiableCredential, error) {
 	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
@@ -293,7 +293,18 @@ func (vc VerifiableCredential) SetAccumulatorState(
 	if sub.AnonCredSchema.PublicParams.AccumulatorPublicParams == nil {
 		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "anonymous credential scheme does not have accumulator")
 	}
-	sub.AnonCredSchema.PublicParams.AccumulatorPublicParams.State = state
+	states := sub.AnonCredSchema.PublicParams.AccumulatorPublicParams.States
+	states = append(states, state)
+	sub.AnonCredSchema.PublicParams.AccumulatorPublicParams.States = states
+	return vc, nil
+}
+
+func (vc VerifiableCredential) UpdatePublicParameters(pp *anonymouscredential.PublicParameters) (VerifiableCredential, error) {
+	sub, ok := vc.GetCredentialSubject().(*VerifiableCredential_AnonCredSchema)
+	if !ok {
+		return VerifiableCredential{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "not an anonymous credential")
+	}
+	sub.AnonCredSchema.PublicParams = pp
 	return vc, nil
 }
 

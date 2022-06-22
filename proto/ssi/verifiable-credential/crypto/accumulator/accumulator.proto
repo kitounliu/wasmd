@@ -9,7 +9,7 @@ message PrivateKey {
 
 message PublicParameters {
   bytes public_key = 1;
-  State state = 2;
+  repeated State states = 2;
 }
 
 message State {

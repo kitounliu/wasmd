@@ -6,8 +6,9 @@ package wasmd.verifiablecredential;
 option go_package = "github.com/CosmWasm/wasmd/x/verifiable-credential/types";
 
 import "gogoproto/gogo.proto";
-import "cosmos-cash/verifiable-credential/verifiable-credential.proto";
-import "cosmos-cash/verifiable-credential/crypto/accumulator/accumulator.proto";
+import "google/protobuf/timestamp.proto";
+import "ssi/verifiable-credential/verifiable-credential.proto";
+import "ssi/verifiable-credential/crypto/accumulator/accumulator.proto";
 
 
 // Msg defines the identity Msg service.
@@ -18,8 +19,10 @@ service Msg {
   rpc IssueUserCredential(MsgIssueUserCredential) returns (MsgIssueUserCredentialResponse);
   // IssueParameterCredential issue public parameters for anonymous credentials
   rpc IssueAnonymousCredentialSchema(MsgIssueAnonymousCredentialSchema) returns (MsgIssueAnonymousCredentialSchemaResponse);
-  // UpdateSchemaAccumulatorState updates membership or non-membership state after adding or deleting members
-  rpc UpdateAnonymousCredentialSchema(MsgUpdateAnonymousCredentialSchema) returns (MsgUpdateAnonymousCredentialSchemaResponse);
+  // UpdateAccumulatorState updates membership or non-membership state after adding or deleting members
+  rpc UpdateAccumulatorState(MsgUpdateAccumulatorState) returns (MsgUpdateAccumulatorStateResponse);
+  // UpdateVerifiableCredential updates a verifiable credential
+  rpc UpdateVerifiableCredential(MsgUpdateVerifiableCredential) returns (MsgUpdateVerifiableCredentialResponse);
   // RevokeCredential a credential
   rpc RevokeCredential(MsgRevokeCredential) returns (MsgRevokeCredentialResponse);
 }
@@ -59,7 +62,7 @@ message MsgIssueAnonymousCredentialSchema {
 message MsgIssueAnonymousCredentialSchemaResponse {}
 
 // MsgUpdateSchemaAccumulatorState message contains data for adding/deleting members from the state
-message MsgUpdateAnonymousCredentialSchema {
+message MsgUpdateVerifiableCredential {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
   wasmd.verifiablecredential.VerifiableCredential credential = 1;
@@ -67,7 +70,21 @@ message MsgUpdateAnonymousCredentialSchema {
 }
 
 // MsgUpdateSchemaAccumulatorStateResponse reply for the issue license call
-message MsgUpdateAnonymousCredentialSchemaResponse {}
+message MsgUpdateVerifiableCredentialResponse {}
+
+// MsgUpdateAccumulatorState message contains data for adding/deleting members from the state
+message MsgUpdateAccumulatorState {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+  string credential_id = 1;
+  google.protobuf.Timestamp issuance_date = 2 [(gogoproto.stdtime) = true];
+  wasmd.verifiablecredential.crypto.accumulator.State state = 3;
+  wasmd.verifiablecredential.Proof proof = 4;
+  string owner = 5;
+}
+
+// MsgUpdateSchemaAccumulatorStateResponse reply for the issue license call
+message MsgUpdateAccumulatorStateResponse {}
 
 // MsgRevokeCredential
 message MsgRevokeCredential {

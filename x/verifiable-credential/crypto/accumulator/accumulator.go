@@ -59,7 +59,7 @@ func (pp *PublicParameters) InitAccumulator(ask *PrivateKey, members accumcrypto
 	if err != nil {
 		return nil, err
 	}
-	pp.State = &State{AccValue: acc, Update: nil}
+	pp.States = append(pp.States, &State{AccValue: acc, Update: nil})
 
 	return pp, err
 }
@@ -72,7 +72,11 @@ func (ask *PrivateKey) InitMemberWitness(pp *PublicParameters, member accumcrypt
 	}
 
 	accum := new(accumcrypto.Accumulator)
-	err = accum.UnmarshalBinary(pp.State.AccValue)
+	num := len(pp.States)
+	if num < 1 {
+		fmt.Errorf("need to initiate accumulator first")
+	}
+	err = accum.UnmarshalBinary(pp.States[num-1].AccValue)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +112,8 @@ func CreateMembershipProofPre(pp *PublicParameters, wit []byte, eb *accumcrypto.
 	}
 
 	accum := new(accumcrypto.Accumulator)
-	err = accum.UnmarshalBinary(pp.State.AccValue)
+	num := len(pp.States)
+	err = accum.UnmarshalBinary(pp.States[num-1].AccValue)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -143,7 +148,9 @@ func VerifyMembershipProof(pp *PublicParameters, proofEntropy []byte, challengeO
 	}
 
 	accum := new(accumcrypto.Accumulator)
-	err = accum.UnmarshalBinary(pp.State.AccValue)
+	// obtain latest state
+	num := len(pp.States)
+	err = accum.UnmarshalBinary(pp.States[num-1].AccValue)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +185,11 @@ func (pp *PublicParameters) UpdateAccumulator(ask *PrivateKey, adds accumcrypto.
 	}
 
 	accum := new(accumcrypto.Accumulator)
-	accum.UnmarshalBinary(pp.State.AccValue)
+	num := len(pp.States)
+	if num < 1 {
+		fmt.Errorf("need to initiate accumulator first")
+	}
+	accum.UnmarshalBinary(pp.States[num-1].AccValue)
 	newAccum, coeffs, err := accum.Update(sk, adds.Elements, dels.Elements)
 	if err != nil {
 		return nil, err
@@ -199,20 +210,23 @@ func (pp *PublicParameters) UpdateAccumulator(ask *PrivateKey, adds accumcrypto.
 	coefficients, err := coffSet.MarshalBinary()
 
 	batchUpdate := BatchUpdate{additions, deletions, coefficients}
-	pp.State = &State{newAcc, &batchUpdate}
+	pp.States = append(pp.States, &State{newAcc, &batchUpdate})
 
 	return pp, nil
 }
 
-func UpdateWitness(pp *PublicParameters, wit []byte) (newWit []byte, err error) {
+func UpdateWitness(pp, newPp *PublicParameters, wit []byte) (newWit []byte, err error) {
 	pk := new(accumcrypto.PublicKey)
-	err = pk.UnmarshalBinary(pp.PublicKey)
+	err = pk.UnmarshalBinary(newPp.PublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	accum := new(accumcrypto.Accumulator)
-	accum.UnmarshalBinary(pp.State.AccValue)
+	n1 := len(pp.States)
+	n2 := len(newPp.States)
+	if n1 >= n2 {
+		return nil, fmt.Errorf("no update for accumulator states")
+	}
 
 	witness := new(accumcrypto.MembershipWitness)
 	err = witness.UnmarshalBinary(wit)
@@ -220,34 +234,41 @@ func UpdateWitness(pp *PublicParameters, wit []byte) (newWit []byte, err error) 
 		return nil, err
 	}
 
-	adds := new(accumcrypto.ElementSet)
-	err = adds.UnmarshalBinary(pp.State.Update.Additions)
-	if err != nil {
-		return nil, err
+	for i := n1; i < n2; i++ {
+		accum := new(accumcrypto.Accumulator)
+		accum.UnmarshalBinary(newPp.States[i].AccValue)
+
+		adds := new(accumcrypto.ElementSet)
+		err = adds.UnmarshalBinary(newPp.States[i].Update.Additions)
+		if err != nil {
+			return nil, err
+		}
+
+		dels := new(accumcrypto.ElementSet)
+		err = dels.UnmarshalBinary(newPp.States[i].Update.Deletions)
+		if err != nil {
+			return nil, err
+		}
+
+		coeffs := new(accumcrypto.CoefficientSet)
+		err = coeffs.UnmarshalBinary(newPp.States[i].Update.Coefficients)
+		if err != nil {
+			return nil, err
+		}
+
+		newWitness, err := witness.BatchUpdate(adds.Elements, dels.Elements, coeffs.Coefficients)
+		if err != nil {
+			return nil, err
+		}
+		err = newWitness.Verify(pk, accum)
+		if err != nil {
+			return nil, err
+		}
+
+		witness = newWitness
 	}
 
-	dels := new(accumcrypto.ElementSet)
-	err = dels.UnmarshalBinary(pp.State.Update.Deletions)
-	if err != nil {
-		return nil, err
-	}
-
-	coeffs := new(accumcrypto.CoefficientSet)
-	err = coeffs.UnmarshalBinary(pp.State.Update.Coefficients)
-	if err != nil {
-		return nil, err
-	}
-
-	newWitness, err := witness.BatchUpdate(adds.Elements, dels.Elements, coeffs.Coefficients)
-	if err != nil {
-		return nil, err
-	}
-	err = newWitness.Verify(pk, accum)
-	if err != nil {
-		return nil, err
-	}
-
-	return newWitness.MarshalBinary()
+	return witness.MarshalBinary()
 }
 
 func GetPublicBlinding(proof []byte) ([]byte, error) {

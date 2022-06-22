@@ -155,13 +155,67 @@ func (k msgServer) IssueAnonymousCredentialSchema(
 	return &types.MsgIssueAnonymousCredentialSchemaResponse{}, nil
 }
 
-// UpdateAnonymousCredentialSchema update an existing anonymous credential schema
-func (k msgServer) UpdateAnonymousCredentialSchema(
+// UpdateAccumulatorState update an existing anonymous credential schema
+func (k msgServer) UpdateAccumulatorState(
 	goCtx context.Context,
-	msg *types.MsgUpdateAnonymousCredentialSchema,
-) (*types.MsgUpdateAnonymousCredentialSchemaResponse, error) {
+	msg *types.MsgUpdateAccumulatorState,
+) (*types.MsgUpdateAccumulatorStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	k.Logger(ctx).Info("update anonymous credential schema request", "credential id", msg.Credential.Id, "address", msg.Owner)
+	k.Logger(ctx).Info("update anonymous credential schema request", "credential id", msg.CredentialId, "address", msg.Owner)
+
+	vc, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.CredentialId))
+	if !found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrNotFound, "vc %s not found", msg.CredentialId)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	_, found = k.Keeper.GetVcMetadata(ctx, []byte(msg.CredentialId))
+	if !found {
+		err := sdkerrors.Wrapf(sdkerrors.ErrNotFound, "vc %s meta data not found", msg.CredentialId)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// check if message signer is authorised by the did
+	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); didErr != nil {
+		return nil, didErr
+	}
+
+	// update credential
+	vc.IssuanceDate = msg.IssuanceDate
+	vc, err := vc.UpdateAccumulatorState(msg.State)
+	if err != nil {
+		return nil, err
+	}
+	vc.Proof = msg.Proof
+
+	// store the credentials
+	if vcErr := k.Keeper.SetVerifiableCredential(ctx, []byte(msg.CredentialId), vc); vcErr != nil {
+		err := sdkerrors.Wrapf(vcErr, "credential proof cannot be verified")
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	// update the Metadata
+	if metaErr := updateVcMetadata(&k.Keeper, ctx, msg.CredentialId, false); metaErr != nil {
+		err := sdkerrors.Wrapf(metaErr, "vc %s", msg.CredentialId)
+		k.Logger(ctx).Error(err.Error())
+		return nil, err
+	}
+
+	k.Logger(ctx).Info("update accumulator state request successful", "credentialID", msg.CredentialId)
+
+	return &types.MsgUpdateAccumulatorStateResponse{}, nil
+}
+
+// UpdateAnonymousCredentialSchema update an existing anonymous credential schema
+func (k msgServer) UpdateVerifiableCredential(
+	goCtx context.Context,
+	msg *types.MsgUpdateVerifiableCredential,
+) (*types.MsgUpdateVerifiableCredentialResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	k.Logger(ctx).Info("update verifiable credential request", "credential id", msg.Credential.Id, "address", msg.Owner)
 
 	vc, found := k.Keeper.GetVerifiableCredential(ctx, []byte(msg.Credential.Id))
 	if !found {
@@ -185,19 +239,12 @@ func (k msgServer) UpdateAnonymousCredentialSchema(
 		}
 	*/
 
-	_, ok := vc.GetCredentialSubject().(*types.VerifiableCredential_AnonCredSchema)
-	if !ok {
-		err := sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "not an anonymous credential schema type")
-		k.Logger(ctx).Error(err.Error())
-		return nil, err
-	}
-
 	// check if message signer is authorised by the did
 	if didErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, msg.Credential.Issuer, msg.Owner); didErr != nil {
 		return nil, didErr
 	}
 
-	// issuers of old and new vc are not necessarily the same
+	// issuer address of old and new vc are not necessarily the same
 	if oldDidErr := k.didKeeper.VerifyDidWithRelationships(ctx, []string{didtypes.Authentication}, vc.Issuer, msg.Owner); oldDidErr != nil {
 		return nil, oldDidErr
 	}
@@ -216,9 +263,9 @@ func (k msgServer) UpdateAnonymousCredentialSchema(
 		return nil, err
 	}
 
-	k.Logger(ctx).Info("update anonymous credential schema request successful", "credentialID", msg.Credential.Id)
+	k.Logger(ctx).Info("update verifiable credential request successful", "credentialID", msg.Credential.Id)
 
-	return &types.MsgUpdateAnonymousCredentialSchemaResponse{}, nil
+	return &types.MsgUpdateVerifiableCredentialResponse{}, nil
 }
 
 // RevokeCredential revoke a credential

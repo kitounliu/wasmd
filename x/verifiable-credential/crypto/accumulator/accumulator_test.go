@@ -63,13 +63,15 @@ func TestAccumulatorUpdate(t *testing.T) {
 	wit, err := sk.InitMemberWitness(pp, members.Elements[2])
 	require.NoError(t, err)
 
+	oldPp := *pp
+
 	// update members and witness
 	adds := accumcrypto.ElementSet{Elements: []accumcrypto.Element{element6, element7, element8}}
 	dels := accumcrypto.ElementSet{Elements: []accumcrypto.Element{element4, element5}}
 	pp, err = pp.UpdateAccumulator(sk, adds, dels)
 	require.NoError(t, err)
 
-	newWit, err := UpdateWitness(pp, wit)
+	newWit, err := UpdateWitness(&oldPp, pp, wit)
 	require.NoError(t, err)
 
 	eb, err := new(accumcrypto.ExternalBlinding).New(Curve)

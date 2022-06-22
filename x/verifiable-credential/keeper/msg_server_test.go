@@ -192,12 +192,12 @@ func (suite *KeeperTestSuite) TestMsgSeverIssueAnonymousCredentialSchema() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
+func (suite *KeeperTestSuite) TestMsgSeverUpdateAccumulatorState() {
 	server := NewMsgServerImpl(suite.keeper)
 	// create an anonymous credential scheme first
 
 	// update the anonymous credential schema
-	var req types.MsgUpdateAnonymousCredentialSchema
+	var req *types.MsgUpdateAccumulatorState
 
 	testCases := []struct {
 		msg       string
@@ -205,7 +205,7 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 		expectErr error
 	}{
 		{
-			msg:       "PASS: issuer can update anonymous credential schema",
+			msg:       "PASS: issuer can update accumulator state",
 			expectErr: nil,
 			malleate: func() {
 				// create a vc first
@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 				issuerAddress := suite.GetIssuerAddress()
 
 				vc = types.NewAnonymousCredentialSchema(
-					"vc:cosmos:net:test:anonymous-credential-schema-2023",
+					"vc:cosmos:net:test:anonymous-credential-schema-for-testing-update-accumulator-state",
 					issuerDid.String(),
 					time.Now(),
 					types.NewAnonymousCredentialSchemaSubject(
@@ -254,14 +254,116 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 				// update the accumulator state
 				// clean the proof
 				vc.Proof = nil
-				vc, err = vc.SetAccumulatorState(&accumulator.State{[]byte("placeholder for accumulator"), nil})
+				now := time.Now()
+				vc.IssuanceDate = &now
+				newState := accumulator.State{AccValue: []byte("placeholder for new accumulator state")}
+				vc, err = vc.UpdateAccumulatorState(&newState)
 				suite.NoError(err)
 				// update proof
 				vc, _ = vc.Sign(
 					suite.keyring, suite.GetIssuerAddress(),
 					issuerDid.NewVerificationMethodID(issuerAddress.String()),
 				)
-				req = types.MsgUpdateAnonymousCredentialSchema{
+				req = types.NewMsgUpdateAccumulatorState(vc.Id, vc.IssuanceDate, &newState, vc.Proof, issuerAddress.String())
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
+			tc.malleate()
+			vcResp, err := server.UpdateAccumulatorState(sdk.WrapSDKContext(suite.ctx), req)
+			if tc.expectErr == nil {
+				suite.NoError(err)
+				suite.NotNil(vcResp)
+			} else {
+				suite.Require().Error(err)
+				suite.Assert().Contains(err.Error(), tc.expectErr.Error())
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgSeverUpdateVerifiableCredential() {
+	server := NewMsgServerImpl(suite.keeper)
+	// create an anonymous credential scheme first
+
+	// update the anonymous credential schema
+	var req types.MsgUpdateVerifiableCredential
+
+	testCases := []struct {
+		msg       string
+		malleate  func()
+		expectErr error
+	}{
+		{
+			msg:       "PASS: issuer can update anonymous credential schema",
+			expectErr: nil,
+			malleate: func() {
+				// create a vc first
+				var vc types.VerifiableCredential
+				issuerDid := didtypes.DID("did:cosmos:net:test:issuer")
+				issuerAddress := suite.GetIssuerAddress()
+
+				vc = types.NewAnonymousCredentialSchema(
+					"vc:cosmos:net:test:anonymous-credential-schema-for-testing-update-verifiable-credential",
+					issuerDid.String(),
+					time.Now(),
+					types.NewAnonymousCredentialSchemaSubject(
+						issuerDid.String(),
+						[]string{"BBS+", "Accumulator"},
+						[]string{
+							"https://eprint.iacr.org/2016/663.pdf",
+							"https://eprint.iacr.org/2020/777.pdf",
+							"https://github.com/coinbase/kryptology",
+							"https://github.com/kitounliu/kryptology/tree/combine",
+						},
+						&anonymouscredential.PublicParameters{
+							BbsPlusPublicParams: &bbsplus.PublicParameters{
+								5,
+								[]byte("placeholder for bbs+ public key"),
+							},
+							AccumulatorPublicParams: &accumulator.PublicParameters{
+								[]byte("placeholder for accumulator public key"),
+								nil,
+							},
+						},
+					),
+				)
+
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				vcReq := types.MsgIssueAnonymousCredentialSchema{
+					Credential: &vc,
+					Owner:      issuerAddress.String(),
+				}
+				vcResp, err := server.IssueAnonymousCredentialSchema(sdk.WrapSDKContext(suite.ctx), &vcReq)
+				suite.NoError(err)
+				suite.NotNil(vcResp)
+
+				// update public parameters
+				newPp := &anonymouscredential.PublicParameters{
+					BbsPlusPublicParams: &bbsplus.PublicParameters{
+						10,
+						[]byte("placeholder for new bbs+ public key"),
+					},
+					AccumulatorPublicParams: &accumulator.PublicParameters{
+						[]byte("placeholder for new accumulator public key"),
+						nil,
+					},
+				}
+				vc, err = vc.UpdatePublicParameters(newPp)
+				suite.NoError(err)
+				// clean the proof
+				vc.Proof = nil
+				// update proof
+				vc, _ = vc.Sign(
+					suite.keyring, suite.GetIssuerAddress(),
+					issuerDid.NewVerificationMethodID(issuerAddress.String()),
+				)
+				req = types.MsgUpdateVerifiableCredential{
 					Credential: &vc,
 					Owner:      issuerAddress.String(),
 				}
@@ -272,7 +374,7 @@ func (suite *KeeperTestSuite) TestMsgSeverUpdateAnonymousCredentialSchema() {
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			tc.malleate()
-			vcResp, err := server.UpdateAnonymousCredentialSchema(sdk.WrapSDKContext(suite.ctx), &req)
+			vcResp, err := server.UpdateVerifiableCredential(sdk.WrapSDKContext(suite.ctx), &req)
 			if tc.expectErr == nil {
 				suite.NoError(err)
 				suite.NotNil(vcResp)

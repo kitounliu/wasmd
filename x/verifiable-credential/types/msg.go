@@ -1,6 +1,9 @@
 package types
 
 import (
+	"time"
+
+	"github.com/CosmWasm/wasmd/x/verifiable-credential/crypto/accumulator"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -20,7 +23,8 @@ var (
 	_ sdk.Msg = &MsgIssueRegistrationCredential{}
 	_ sdk.Msg = &MsgIssueUserCredential{}
 	_ sdk.Msg = &MsgIssueAnonymousCredentialSchema{}
-	_ sdk.Msg = &MsgUpdateAnonymousCredentialSchema{}
+	_ sdk.Msg = &MsgUpdateAccumulatorState{}
+	_ sdk.Msg = &MsgUpdateVerifiableCredential{}
 )
 
 // NewMsgRevokeVerifiableCredential creates a new MsgDeleteVerifiableCredential instance
@@ -234,26 +238,26 @@ func (msg *MsgIssueAnonymousCredentialSchema) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgUpdateAnonymousCredentialSchema updates an existing instance of anonymous credential schema
-func NewMsgUpdateAnonymousCredentialSchema(credential VerifiableCredential, signerAccount string) *MsgUpdateAnonymousCredentialSchema {
-	return &MsgUpdateAnonymousCredentialSchema{
+// NewMsgUpdateVerifiableCredential updates an existing instance of anonymous credential schema
+func NewMsgUpdateVerifiableCredential(credential VerifiableCredential, signerAccount string) *MsgUpdateVerifiableCredential {
+	return &MsgUpdateVerifiableCredential{
 		Credential: &credential,
 		Owner:      signerAccount,
 	}
 }
 
 // Route returns the module router key
-func (msg *MsgUpdateAnonymousCredentialSchema) Route() string {
+func (msg *MsgUpdateVerifiableCredential) Route() string {
 	return RouterKey
 }
 
 // Type returns the string name of the message
-func (msg *MsgUpdateAnonymousCredentialSchema) Type() string {
+func (msg *MsgUpdateVerifiableCredential) Type() string {
 	return TypeMsgIssueAnonymousCredentialSchema
 }
 
 // GetSigners returns the account addresses singing the message
-func (msg *MsgUpdateAnonymousCredentialSchema) GetSigners() []sdk.AccAddress {
+func (msg *MsgUpdateVerifiableCredential) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -262,13 +266,58 @@ func (msg *MsgUpdateAnonymousCredentialSchema) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes returns the bytes of the signed message
-func (msg *MsgUpdateAnonymousCredentialSchema) GetSignBytes() []byte {
+func (msg *MsgUpdateVerifiableCredential) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic performs basic validation of the message
-func (msg *MsgUpdateAnonymousCredentialSchema) ValidateBasic() error {
+func (msg *MsgUpdateVerifiableCredential) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	return nil
+}
+
+// NewMsgUpdateAccumulatorState updates an existing instance of anonymous credential schema
+func NewMsgUpdateAccumulatorState(credentialId string, issuanceDate *time.Time, state *accumulator.State, proof *Proof, signerAccount string) *MsgUpdateAccumulatorState {
+	return &MsgUpdateAccumulatorState{
+		credentialId,
+		issuanceDate,
+		state,
+		proof,
+		signerAccount,
+	}
+}
+
+// Route returns the module router key
+func (msg *MsgUpdateAccumulatorState) Route() string {
+	return RouterKey
+}
+
+// Type returns the string name of the message
+func (msg *MsgUpdateAccumulatorState) Type() string {
+	return TypeMsgIssueAnonymousCredentialSchema
+}
+
+// GetSigners returns the account addresses singing the message
+func (msg *MsgUpdateAccumulatorState) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
+}
+
+// GetSignBytes returns the bytes of the signed message
+func (msg *MsgUpdateAccumulatorState) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic performs basic validation of the message
+func (msg *MsgUpdateAccumulatorState) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)

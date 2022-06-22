@@ -2,8 +2,8 @@ syntax = "proto3";
 package wasmd.did;
 
 import "gogoproto/gogo.proto";
-import "cosmos-cash/did/did.proto";
-import "google/api/annotations.proto";
+import "ssi/did/did.proto";
+
 
 option go_package = "github.com/CosmWasm/wasmd/x/did/types";
 

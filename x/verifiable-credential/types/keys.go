@@ -9,7 +9,7 @@ var (
 
 const (
 	// ModuleName defines the module name
-	ModuleName = "verifiablecredential"
+	ModuleName = "vc"
 
 	// StoreKey defines the primary module store key
 	StoreKey = ModuleName

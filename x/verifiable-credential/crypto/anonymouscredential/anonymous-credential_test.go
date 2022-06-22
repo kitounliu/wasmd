@@ -58,6 +58,7 @@ func TestAnonymousCredentialGeneration(t *testing.T) {
 	// anonymous crendential for alice is (alice_bbs_sig, alice_wit), (bob_bbs_sig, bob_wit)
 
 	// alice creates a zkp using her credential (alice_bbs_sig, alice_wit)
+
 	// nonce should be from the verifier or a certain event tag
 	var nonce [32]byte
 	cnt, err := crand.Read(nonce[:])
@@ -142,6 +143,7 @@ func TestAnonymousCredentialGeneration(t *testing.T) {
 
 	adds = accumcrypto.ElementSet{Elements: []accumcrypto.Element{mem3, mem4}}
 	dels = accumcrypto.ElementSet{Elements: []accumcrypto.Element{mem2}}
+	app := *pp.AccumulatorPublicParams
 	pp.AccumulatorPublicParams, err = pp.AccumulatorPublicParams.UpdateAccumulator(sk.AccumulatorKey, adds, dels)
 	require.NoError(t, err)
 
@@ -153,7 +155,7 @@ func TestAnonymousCredentialGeneration(t *testing.T) {
 	_ = daveWit // no more error
 	require.NoError(t, err)
 	// alice updates her own witness
-	newAliceWit, err := accumulator.UpdateWitness(pp.AccumulatorPublicParams, alice_wit)
+	newAliceWit, err := accumulator.UpdateWitness(&app, pp.AccumulatorPublicParams, alice_wit)
 	_ = newAliceWit // no more error
 	require.NoError(t, err)
 }
