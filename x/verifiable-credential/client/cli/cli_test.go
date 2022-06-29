@@ -341,11 +341,11 @@ func (s *IntegrationTestSuite) TestUpdateAccumulatorStateCmd() {
 	//pull out the just created anonymous credential schema
 	cmd = cli.GetCmdQueryVerifiableCredential()
 	identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
-	args_temp := []string{
+	argsTemp := []string{
 		identifiertoquery,
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
-	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, argsTemp)
 	s.Require().NoError(err)
 	response := &types.QueryVerifiableCredentialResponse{}
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), response), out.String())
@@ -353,7 +353,7 @@ func (s *IntegrationTestSuite) TestUpdateAccumulatorStateCmd() {
 	s.Require().NoError(err)
 	vcFile := testutil.WriteToNewTempFile(s.T(), string(vc))
 
-	newState := &accumulator.State{[]byte("placeholder for new accumulator state"), nil}
+	newState := &accumulator.State{AccValue: []byte("placeholder for new accumulator state")}
 	state, err := clientCtx.Codec.MarshalJSON(newState)
 	stateFile := testutil.WriteToNewTempFile(s.T(), string(state))
 
@@ -386,11 +386,11 @@ func (s *IntegrationTestSuite) TestUpdateAccumulatorStateCmd() {
 			//pull out the just created anonymous credential schema
 			cmd = cli.GetCmdQueryVerifiableCredential()
 			identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
-			args_temp := []string{
+			argsTemp := []string{
 				identifiertoquery,
 				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 			}
-			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, argsTemp)
 			s.Require().NoError(err)
 			res := &types.QueryVerifiableCredentialResponse{}
 			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), res), out.String())
@@ -446,11 +446,11 @@ func (s *IntegrationTestSuite) TestUpdateVerifiableCredentialCmd() {
 	//pull out the just created anonymous credential schema
 	cmd = cli.GetCmdQueryVerifiableCredential()
 	identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
-	args_temp := []string{
+	argsTemp := []string{
 		identifiertoquery,
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
-	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, argsTemp)
 	s.Require().NoError(err)
 	response := &types.QueryVerifiableCredentialResponse{}
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), response), out.String())
@@ -490,11 +490,11 @@ func (s *IntegrationTestSuite) TestUpdateVerifiableCredentialCmd() {
 			//pull out the just created anonymous credential schema
 			cmd = cli.GetCmdQueryVerifiableCredential()
 			identifiertoquery := "vc:cosmos:net:" + clientCtx.ChainID + ":" + schemaId
-			args_temp := []string{
+			argsTemp := []string{
 				identifiertoquery,
 				fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 			}
-			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args_temp)
+			out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, argsTemp)
 			s.Require().NoError(err)
 			res := &types.QueryVerifiableCredentialResponse{}
 			s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), res), out.String())

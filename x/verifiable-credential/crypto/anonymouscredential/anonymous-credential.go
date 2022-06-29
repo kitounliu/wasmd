@@ -39,7 +39,7 @@ func NewAnonymousCredentialSchema(msgLen int) (*PrivateKey, *PublicParameters, e
 	return &privateKey, &pubParams, nil
 }
 
-func VerifyProof(pp *PublicParameters, revealedMsgs map[int]curves.Scalar, proof AnonymousCredentialProof) (okm []byte, err error) {
+func VerifyProof(pp *PublicParameters, revealedMsgs map[int]curves.Scalar, proof *AnonymousCredentialProof) (okm []byte, err error) {
 	// verify bbs+ proof
 	bbsOkm, err := bbsplus.VerifyProof(pp.BbsPlusPublicParams, revealedMsgs, proof.Nonce, proof.Challenge, proof.BbsPlusProof)
 	if err != nil {

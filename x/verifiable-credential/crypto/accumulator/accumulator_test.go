@@ -68,7 +68,7 @@ func TestAccumulatorUpdate(t *testing.T) {
 	// update members and witness
 	adds := accumcrypto.ElementSet{Elements: []accumcrypto.Element{element6, element7, element8}}
 	dels := accumcrypto.ElementSet{Elements: []accumcrypto.Element{element4, element5}}
-	pp, err = pp.UpdateAccumulator(sk, adds, dels)
+	pp, _, err = pp.UpdateAccumulatorState(sk, adds, dels)
 	require.NoError(t, err)
 
 	newWit, err := UpdateWitness(&oldPp, pp, wit)
