@@ -544,6 +544,27 @@ func (didDoc DidDocument) GetVerificationMethodBlockchainAddress(methodID string
 	return
 }
 
+// GetVerificationMethodPublicKey returns the public key in verification method cosmos blockchain address of a verification method.
+// it fails if the verification method is not supported or if the public key is not found
+func (didDoc DidDocument) GetVerificationMethodPublicKey(methodID string) (pk cryptotypes.PubKey, err error) {
+	pk = nil
+	for _, vm := range didDoc.VerificationMethod {
+		if vm.Id == methodID {
+			switch k := vm.VerificationMaterial.(type) {
+			case *VerificationMethod_BlockchainAccountID:
+				err = fmt.Errorf("public key not found in verification method: %s", methodID)
+			case *VerificationMethod_PublicKeyMultibase:
+				pk, err = toPublicKey(k.PublicKeyMultibase[1:])
+			case *VerificationMethod_PublicKeyHex:
+				pk, err = toPublicKey(k.PublicKeyHex)
+			}
+			return pk, err
+		}
+	}
+	err = ErrVerificationMethodNotFound
+	return pk, err
+}
+
 // GetVerificationRelationships returns the relationships associated with the
 // verification method id.
 func (didDoc DidDocument) GetVerificationRelationships(methodID string) []string {
@@ -818,6 +839,22 @@ func toAddress(hexKey string) (addr string, err error) {
 	// generate the address
 	addr, err = sdk.Bech32ifyAddressBytes(sdk.GetConfig().GetBech32AccountAddrPrefix(), pk.Address())
 	return
+}
+
+func toPublicKey(hexKey string) (cryptotypes.PubKey, error) {
+	// decode the hex string
+	pkb, err := hex.DecodeString(hexKey)
+	if err != nil {
+		return nil, err
+	}
+	// check the size of the decoded byte slice, otherwise the pk.Address will panic
+	if len(pkb) != secp256k1.PubKeySize {
+		err = fmt.Errorf("invalid public key size")
+		return nil, err
+	}
+	// load the public key
+	pk := &secp256k1.PubKey{Key: pkb}
+	return pk, nil
 }
 
 // union perform union, distinct amd sort operation between two slices
